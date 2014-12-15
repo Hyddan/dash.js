@@ -228,9 +228,6 @@ MediaPlayer.dependencies.Stream = function () {
                     if (!!contentProtectionData && !self.capabilities.supportsEncryptedMedia()) {
                         self.errHandler.capabilityError("encryptedmedia");
                     } else {
-                        //kid = self.protectionController.selectKeySystem(codec, contentProtection);
-                        //self.protectionController.ensureKeySession(kid, codec, null);
-
                         if (!self.capabilities.supportsCodec(self.videoModel.getElement(), codec)) {
                             var msg = type + "Codec (" + codec + ") is not supported.";
                             self.errHandler.manifestError(msg, "codec", manifest);
