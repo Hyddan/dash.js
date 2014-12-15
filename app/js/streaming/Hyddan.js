@@ -129,6 +129,7 @@ window.Hyddan = (function (Hyddan) {
                 _di = null,
                 _element = null,
                 _isPlaying = false,
+                _logToConsole = false,
                 _protection = null,
                 _source = null,
                 _trackProgress = true;
@@ -156,6 +157,8 @@ window.Hyddan = (function (Hyddan) {
                 _di.mapOutlet('bufferMax', 'bufferController');
                 
                 DashJs.abrController = _di.getObject('abrController');
+                DashJs.debug = _di.getObject('debug');
+                DashJs.eventBus = _di.getObject('eventBus');
                 DashJs.manifestLoader = _di.getObject('manifestLoader');
                 DashJs.manifestUpdater = _di.getObject('manifestUpdater');
                 DashJs.rulesController = _di.getObject('rulesController');
@@ -189,17 +192,34 @@ window.Hyddan = (function (Hyddan) {
             
             return Events;
         }(Player.Events || {}));
-        
+
+        Player.addEventListener = function (type, listener, useCapture) {
+            Player.DashJs.eventBus.addEventListener(type, listener, useCapture);
+            
+            return Player;
+        };
+        Player.removeEventListener = function (type, listener, useCapture) {
+            Player.DashJs.eventBus.removeEventListener(type, listener, useCapture);
+            
+            return Player;
+        };
+
         Player.configure = function (data) {
-            /*
-             *    data = {
-             *        object: element,
-             *        protection: protection,
-             *        source: source
-             *    };
-             */
+            data = data || {
+                autoPlay: true,
+                debug: {
+                    logToConsole: false
+                },
+                object: null,
+                protection: null,
+                source: null
+            };
+            
             
             Player.Events.onConfigure(data);
+            
+            _autoPlay = data.autoPlay;
+            _logToConsole = (data.debug || {}).logToConsole || false;
             
             Player.object(data.object);
             Player.protection(data.protection);
@@ -279,6 +299,8 @@ window.Hyddan = (function (Hyddan) {
                 
                 if (Hyddan.Utils.notNullOrEmpty(_element) && Hyddan.Utils.notNullOrEmpty(_source)) {
                     _isPlaying = _trackProgress = true;
+                    
+                    Player.DashJs.debug.setLogToBrowserConsole(_logToConsole);
                     
                     Player.DashJs.streamController.subscribe(MediaPlayer.dependencies.StreamController.eventList.ENAME_STREAMS_COMPOSED, Player.DashJs.manifestUpdater);
                     Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.streamController);
