@@ -338,15 +338,6 @@ MediaPlayer = function (aContext) {
         },
 
         /**
-         * @param keySystem
-         * @param value
-         * @memberof MediaPlayer#
-         */
-        setBearerToken: function(keySystem, value) {
-            protectionController.setBearerToken({keySystem: keySystem, token: value});
-        },
-
-        /**
          * @param value
          * @memberof MediaPlayer#
          */
