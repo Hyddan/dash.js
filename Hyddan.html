@@ -127,6 +127,10 @@
         init = function () {
             Hyddan.Player.initialize(new Dash.di.DashContext())
                             .configure({
+                                autoPlay: true,
+                                debug: {
+                                    logToConsole: true
+                                },
                                 object: document.querySelector('.dash-video-player video'),
                                 protection: {
                                     licenseRequest: {
