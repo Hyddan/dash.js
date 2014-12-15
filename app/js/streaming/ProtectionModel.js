@@ -55,18 +55,47 @@ MediaPlayer.models.ProtectionModel = function () {
         },
 
         addKeySystem: function (kid, contentProtectionData, keySystemDesc, initData) {
-            var keysLocal = this.protectionExt.createMediaKeys(keySystemDesc.keysTypeString);
+            var _self = this,
+                    _keys = null;
 
-            this.protectionExt.setMediaKey(element, keysLocal, initData);
+            if (!keySystemDesc.usePromises()) {
+                _keys = this.protectionExt.createMediaKeys(keySystemDesc.keysTypeString);
 
-            keySystems[kid] = {
-                kID : kid,
-                contentProtection : contentProtectionData,
-                keySystem : keySystemDesc,
-                keys : keysLocal,
-                initData : null,
-                keySessions : []
-            };
+                this.protectionExt.setMediaKey(element, _keys, initData);
+
+                keySystems[kid] = {
+                    kID : kid,
+                    contentProtection : contentProtectionData,
+                    keySystem : keySystemDesc,
+                    keys : _keys,
+                    initData : null,
+                    keySessions : []
+                };
+            }
+            else {
+                this.protectionExt.createMediaKeys(keySystemDesc.keysTypeString).then(function (mediaKeys) {
+                    _self.protectionExt.setMediaKey(element, mediaKeys, initData);
+
+                    keySystems[kid] = {
+                        kID : kid,
+                        contentProtection : contentProtectionData,
+                        keySystem : keySystemDesc,
+                        keys : mediaKeys,
+                        initData : null,
+                        keySessions : []
+                    };
+                }).catch(function (error) {
+                    return error;
+                });
+
+                keySystems[kid] = {
+                    keySystem: {
+                        needToAddKeySession: function () {
+                            return false;
+                        }
+                    }
+                };
+            }
         },
 
         removeKeySystem: function (kid) {

@@ -29,7 +29,7 @@ MediaPlayer.dependencies.ProtectionController = function () {
             for(var ks = 0; ks < keySystems.length; ++ks) {
                 for(var cp = 0; cp < contentProtection.length; ++cp) {
                     if (keySystems[ks].isSupported(contentProtection[cp]) &&
-                        self.protectionExt.supportsCodec(keySystems[ks].keysTypeString, codec)) {
+                        (self.protectionExt.supportsCodec(keySystems[ks].keysTypeString, codec) || keySystems[ks].usePromises())) {
 
                         var kid = contentProtection[cp].KID;
                         if (!kid) {

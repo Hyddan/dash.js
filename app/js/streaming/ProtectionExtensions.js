@@ -49,12 +49,16 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 hasMediaKeys = ('MediaKeys' in window),
                 hasWebkitGenerateKeyRequest = ('webkitGenerateKeyRequest' in document.createElement('video'));
 
-        if (hasWebkitGenerateKeyRequest) {
+        if (hasMediaKeys) {
+            if ('create' in MediaKeys) {
+                return MediaKeys.create(mediaKeysString);
+            }
+
+            return new MediaKeys(mediaKeysString);
+        } else if (hasWebkitGenerateKeyRequest) {
             return {
                 keySystem: mediaKeysString
             };
-        } else if (hasMediaKeys) {
-            return new MediaKeys(mediaKeysString);
         } else if (hasWebKit) {
             return new WebKitMediaKeys(mediaKeysString);
         } else if (hasMs) {
@@ -297,6 +301,9 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 isSupported: function (data) {
                     return this.schemeIdUri === data.schemeIdUri.toLowerCase();
                 },
+                usePromises: function () {
+                    return false;
+                },
                 needToAddKeySession: playReadyNeedToAddKeySession,
                 getInitData: playreadyGetInitData,
                 getUpdate: playreadyGetUpdate,
@@ -308,6 +315,9 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 keysTypeString: "com.microsoft.playready",
                 isSupported: function (data) {
                     return this.schemeIdUri === data.schemeIdUri.toLowerCase() && data.value.toLowerCase() === "cenc";
+                },
+                usePromises: function () {
+                    return false;
                 },
                 needToAddKeySession: playReadyNeedToAddKeySession,
                 getInitData: function (/*data*/) {
@@ -323,6 +333,9 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 keysTypeString: "webkit-org.w3.clearkey",
                 isSupported: function (data) {
                     return this.schemeIdUri === data.schemeIdUri.toLowerCase();
+                },
+                usePromises: function () {
+                    return false;
                 },
                 needToAddKeySession: function (/*initData, keySessions*/) {
                     return true;
@@ -346,6 +359,9 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 needToAddKeySession: function (/*initData, keySessions*/) {
                     return false;
                 },
+                usePromises: function () {
+                    return 'MediaKeys' in window && 'function' === typeof (MediaKeys.create);
+                },
                 getInitData: function (/*data*/) {
                     return null;
                 },
@@ -360,6 +376,9 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 keysTypeString: "com.widevine.alpha",
                 isSupported: function (data) {
                     return this.schemeIdUri === data.schemeIdUri.toLowerCase() && data.value.toLowerCase() === "cenc";
+                },
+                usePromises: function () {
+                    return 'MediaKeys' in window && 'function' === typeof (MediaKeys.create);
                 },
                 needToAddKeySession: function (/*initData, keySessions*/) {
                     return false;
