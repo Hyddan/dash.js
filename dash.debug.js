@@ -1392,12 +1392,6 @@ MediaPlayer = function(aContext) {
         getScheduleWhilePaused: function() {
             return scheduleWhilePaused;
         },
-        setBearerToken: function(keySystem, value) {
-            protectionController.setBearerToken({
-                keySystem: keySystem,
-                token: value
-            });
-        },
         setBufferMax: function(value) {
             bufferMax = value;
         },
@@ -3368,8 +3362,8 @@ Dash.dependencies.DashParser = function() {
     var SECONDS_IN_YEAR = 365 * 24 * 60 * 60, SECONDS_IN_MONTH = 30 * 24 * 60 * 60, SECONDS_IN_DAY = 24 * 60 * 60, SECONDS_IN_HOUR = 60 * 60, SECONDS_IN_MIN = 60, MINUTES_IN_HOUR = 60, MILLISECONDS_IN_SECONDS = 1e3, durationRegex = /^P(([\d.]*)Y)?(([\d.]*)M)?(([\d.]*)D)?T?(([\d.]*)H)?(([\d.]*)M)?(([\d.]*)S)?/, datetimeRegex = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})(?::([0-9]*)(\.[0-9]*)?)?(?:([+-])([0-9]{2})([0-9]{2}))?/, numericRegex = /^[-+]?[0-9]+[.]?[0-9]*([eE][-+]?[0-9]+)?$/, matchers = [ {
         type: "duration",
         test: function(attr) {
-            var attributeList = [ "minBufferTime", "mediaPresentationDuration", "start", "minimumUpdatePeriod", "timeShiftBufferDepth", "maxSegmentDuration", "maxSubsegmentDuration", "suggestedPresentationDelay", "start", "starttime", "duration" ];
-            for (var i = 0; i < attributeList.length - 1; i++) {
+            var attributeList = [ "minBufferTime", "mediaPresentationDuration", "minimumUpdatePeriod", "timeShiftBufferDepth", "maxSegmentDuration", "maxSubsegmentDuration", "suggestedPresentationDelay", "start", "starttime", "duration" ], len = attributeList.length;
+            for (var i = 0; i < len; i++) {
                 if (attr.nodeName === attributeList[i]) {
                     return durationRegex.test(attr.value);
                 }
@@ -5558,6 +5552,267 @@ MediaPlayer.dependencies.FragmentModel.eventList = {
     ENAME_FRAGMENT_LOADING_COMPLETED: "fragmentLoadingCompleted"
 };
 
+window.Hyddan = function(Hyddan) {
+    Hyddan.Utils = function(Utils) {
+        Utils.extend = function() {
+            for (var i = 1; i < arguments.length; i++) {
+                for (var key in arguments[i]) {
+                    if (arguments[i].hasOwnProperty(key)) {
+                        arguments[0][key] = arguments[i][key];
+                    }
+                }
+            }
+            return arguments[0];
+        };
+        Utils.getQueryStringParameter = function(parameter) {
+            var result = new RegExp("[\\?&]" + parameter.replace(/[\[]/, "[").replace(/[\]]/, "]") + "=([^&#]*)").exec(window.location.search);
+            if (null !== result) {
+                result = decodeURIComponent(result[1].replace(/\+/g, " "));
+            }
+            return result;
+        };
+        Utils.loadScript = function(url, onLoad) {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = url;
+            if (script.readyState) {
+                script.onreadystatechange = function() {
+                    if (script.readyState == "loaded" || script.readyState == "complete") {
+                        script.onreadystatechange = null;
+                        if (null !== onLoad) {
+                            onLoad();
+                        }
+                    }
+                };
+            } else {
+                if (null !== onLoad) {
+                    script.onload = onLoad;
+                }
+            }
+            document.getElementsByTagName("head")[0].appendChild(script);
+        };
+        Utils.loadStyle = function(url, onLoad) {
+            var link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.type = "text/css";
+            link.href = url;
+            if (link.readyState) {
+                link.onreadystatechange = function() {
+                    if (link.readyState == "loaded" || link.readyState == "complete") {
+                        link.onreadystatechange = null;
+                        if (null !== onLoad) {
+                            onLoad();
+                        }
+                    }
+                };
+            } else {
+                if (null !== onLoad) {
+                    link.onload = onLoad;
+                }
+            }
+            document.getElementsByTagName("head")[0].appendChild(link);
+        };
+        Utils.notNullOrEmpty = function(obj) {
+            return null !== obj && "undefined" !== typeof obj && "" !== obj;
+        };
+        Utils.stringFormat = function(pattern) {
+            if (String.isNullOrEmpty(pattern)) {
+                return null;
+            }
+            var _args = Array.prototype.slice.call(arguments, 0);
+            for (var i = 1; i < _args.length; i++) {
+                if ("object" !== typeof _args[i]) {
+                    pattern = pattern.replace("{" + (i - 1) + "}", _args[i]);
+                } else {
+                    for (var key in _args[i]) {
+                        if (_args[i].hasOwnProperty(key)) {
+                            pattern = pattern.replace("{" + key + "}", _args[i][key]);
+                        }
+                    }
+                }
+            }
+            return pattern;
+        };
+        return Utils;
+    }(Hyddan.Utils || {});
+    Hyddan.context = function(path, separator) {
+        var i = 0, current = window;
+        path = path.split(separator || ".");
+        for (i; i < path.length; ++i) {
+            if (!current[path[i]]) {
+                current[path[i]] = {};
+            }
+            current = current[path[i]];
+        }
+        return current;
+    };
+    Hyddan.require = function(path) {
+        return Hyddan.context(path);
+    };
+    Hyddan.Player = function(Player) {
+        var _autoPlay = true, _context = null, _di = null, _element = null, _isPlaying = false, _logToConsole = false, _protection = null, _source = null, _trackProgress = true;
+        var _reset = function() {
+            if (!String.isNullOrEmpty(_source)) {
+                Player.DashJs.streamController.unsubscribe(MediaPlayer.dependencies.StreamController.eventList.ENAME_STREAMS_COMPOSED, Player.DashJs.manifestUpdater);
+                Player.DashJs.manifestLoader.unsubscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.streamController);
+                Player.DashJs.manifestLoader.unsubscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.manifestUpdater);
+                Player.DashJs.streamController.reset();
+                Player.DashJs.abrController.reset();
+                Player.DashJs.rulesController.reset();
+                Player.DashJs.streamController = null;
+                _source = _protection = null;
+                _isPlaying = _trackProgress = false;
+            }
+        };
+        Player.DashJs = function(DashJs) {
+            DashJs.initialize = function() {
+                _di.mapValue("scheduleWhilePaused", false);
+                _di.mapOutlet("scheduleWhilePaused", "stream");
+                _di.mapOutlet("scheduleWhilePaused", "scheduleController");
+                _di.mapValue("bufferMax", MediaPlayer.dependencies.BufferController.BUFFER_SIZE_REQUIRED);
+                _di.mapOutlet("bufferMax", "bufferController");
+                DashJs.abrController = _di.getObject("abrController");
+                DashJs.debug = _di.getObject("debug");
+                DashJs.eventBus = _di.getObject("eventBus");
+                DashJs.manifestLoader = _di.getObject("manifestLoader");
+                DashJs.manifestUpdater = _di.getObject("manifestUpdater");
+                DashJs.rulesController = _di.getObject("rulesController");
+                DashJs.streamController = _di.getObject("streamController");
+                DashJs.videoModel = _di.getObject("videoModel");
+            };
+            Player.notifier = undefined;
+            return DashJs;
+        }(Player.DashJs || {});
+        Player.Events = function(Events) {
+            Events.onError = Events.onError || function(error) {};
+            Events.onInitialize = Events.onInitialize || function(context) {};
+            Events.onTimeUpdate = Events.onTimeUpdate || function(currentTime) {};
+            Events.onConfigure = Events.onConfigure || function(configuration) {};
+            Events.onData = Events.onData || function(data) {};
+            Events.onDestroy = Events.onDestroy || function() {};
+            Events.onObject = Events.onObject || function(element) {};
+            Events.onPause = Events.onPause || function() {};
+            Events.onPlay = Events.onPlay || function() {};
+            Events.onPlayComplete = Events.onPlayComplete || function() {};
+            Events.onPosition = Events.onPosition || function(position) {};
+            Events.onProtection = Events.onProtection || function(protection) {};
+            Events.onSource = Events.onSource || function(source) {};
+            Events.onStop = Events.onStop || function() {};
+            Events.onVolume = Events.onVolume || function(volume) {};
+            return Events;
+        }(Player.Events || {});
+        Player.addEventListener = function(type, listener, useCapture) {
+            Player.DashJs.eventBus.addEventListener(type, listener, useCapture);
+            return Player;
+        };
+        Player.removeEventListener = function(type, listener, useCapture) {
+            Player.DashJs.eventBus.removeEventListener(type, listener, useCapture);
+            return Player;
+        };
+        Player.configure = function(data) {
+            data = data || {
+                autoPlay: true,
+                debug: {
+                    logToConsole: false
+                },
+                object: null,
+                protection: null,
+                source: null
+            };
+            Player.Events.onConfigure(data);
+            _autoPlay = data.autoPlay;
+            _logToConsole = (data.debug || {}).logToConsole || false;
+            Player.object(data.object);
+            Player.protection(data.protection);
+            Player.source(data.source);
+            return Player;
+        };
+        Player.initialize = function(context) {
+            (_di = new dijon.System()).mapValue("system", _di).mapOutlet("system").injectInto(_context = context).injectInto(Player);
+            Player.DashJs.initialize();
+            Player.Events.onInitialize(_context);
+            return Player;
+        };
+        Player.destroy = function() {
+            Player.Events.onDestroy();
+            return Player;
+        };
+        Player.object = function(element) {
+            if (Hyddan.Utils.notNullOrEmpty(element)) {
+                _reset();
+                Player.DashJs.videoModel.setElement(_element = element);
+                Player.Events.onObject(_element);
+                return Player;
+            }
+            return _element;
+        };
+        Player.pause = function() {
+            if (_isPlaying) {
+                _element.pause();
+                _isPlaying = _trackProgress = false;
+            }
+            return Player;
+        };
+        Player.play = function() {
+            if (!_isPlaying) {
+                _element.play();
+                _isPlaying = _trackProgress = true;
+            }
+            return Player;
+        };
+        Player.position = function(positionInS) {
+            positionInS = parseInt(positionInS, 10);
+            if ("number" === typeof positionInS) {
+                Player.Events.onPosition(_element.position = positionInS);
+                return Player;
+            }
+            return _element.position;
+        };
+        Player.protection = function(protection) {
+            if (Hyddan.Utils.notNullOrEmpty(protection)) {
+                Player.Events.onProtection(_protection = protection);
+                return Player;
+            }
+            return _protection;
+        };
+        Player.source = function(source) {
+            if (Hyddan.Utils.notNullOrEmpty(source)) {
+                _reset();
+                Player.Events.onSource(_source = source);
+                if (Hyddan.Utils.notNullOrEmpty(_element) && Hyddan.Utils.notNullOrEmpty(_source)) {
+                    _isPlaying = _trackProgress = true;
+                    Player.DashJs.debug.setLogToBrowserConsole(_logToConsole);
+                    Player.DashJs.streamController.subscribe(MediaPlayer.dependencies.StreamController.eventList.ENAME_STREAMS_COMPOSED, Player.DashJs.manifestUpdater);
+                    Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.streamController);
+                    Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.manifestUpdater);
+                    Player.DashJs.streamController.setVideoModel(Player.DashJs.videoModel);
+                    Player.DashJs.streamController.setAutoPlay(_autoPlay);
+                    Player.DashJs.streamController.setProtectionData(_protection);
+                    Player.DashJs.streamController.load(_source);
+                    Player.DashJs.rulesController.initialize();
+                }
+                return Player;
+            }
+            return _source;
+        };
+        Player.stop = function() {
+            _source = null;
+            _element.load();
+            Player.Events.onStop();
+            return Player;
+        };
+        Player.volume = function(volume) {
+            if ("number" === typeof volume && 0 <= volume && 1 >= volume) {
+                Player.Events.onVolume(_element.volume = volume);
+                return Player;
+            }
+            return _element.volume;
+        };
+        return Player;
+    }(Hyddan.Player || {});
+    return Hyddan;
+}(window.Hyddan || {});
+
 MediaPlayer.dependencies.LiveEdgeFinder = function() {
     "use strict";
     var isSearchStarted = false, searchStartTime = NaN, rules, onSearchCompleted = function(req) {
@@ -5817,7 +6072,9 @@ MediaPlayer.dependencies.MediaSourceExtensions.prototype = {
     },
     attachMediaSource: function(source, videoModel) {
         "use strict";
-        videoModel.setSource(window.URL.createObjectURL(source));
+        var objectURL = window.URL.createObjectURL(source);
+        videoModel.setSource(objectURL);
+        return objectURL;
     },
     detachMediaSource: function(videoModel) {
         "use strict";
@@ -6376,16 +6633,16 @@ MediaPlayer.dependencies.ProtectionController = function() {
     var element = null, keySystems = null, teardownKeySystem = function(kid) {
         var self = this;
         self.protectionModel.removeKeySystem(kid);
-    }, selectKeySystem = function(mediaInfo) {
+    }, selectKeySystem = function(mediaInfo, event) {
         var self = this, codec = mediaInfo.codec, contentProtection = mediaInfo.contentProtection;
         for (var ks = 0; ks < keySystems.length; ++ks) {
             for (var cp = 0; cp < contentProtection.length; ++cp) {
-                if (keySystems[ks].isSupported(contentProtection[cp]) && self.protectionExt.supportsCodec(keySystems[ks].keysTypeString, codec)) {
+                if (keySystems[ks].isSupported(contentProtection[cp]) && (self.protectionExt.supportsCodec(keySystems[ks].keysTypeString, codec) || keySystems[ks].usePromises())) {
                     var kid = contentProtection[cp].KID;
                     if (!kid) {
                         kid = "unknown";
                     }
-                    self.protectionModel.addKeySystem(kid, contentProtection[cp], keySystems[ks]);
+                    self.protectionModel.addKeySystem(kid, contentProtection[cp], keySystems[ks], event.initData);
                     self.debug.log("DRM: Selected Key System: " + keySystems[ks].keysTypeString + " For KID: " + kid);
                     return kid;
                 }
@@ -6393,29 +6650,25 @@ MediaPlayer.dependencies.ProtectionController = function() {
         }
         throw new Error("DRM: The protection system for this content is not supported.");
     }, ensureKeySession = function(kid, codec, event) {
-        var self = this, session = null, eventInitData = event.initData, initData = null;
-        if (!self.protectionModel.needToAddKeySession(kid, event)) {
+        var self = this, session = null, initData = null;
+        if (!self.protectionModel.needToAddKeySession(kid)) {
             return;
         }
         initData = self.protectionModel.getInitData(kid);
-        if (!initData && !!eventInitData) {
-            initData = eventInitData;
+        if (!initData && !!event.initData) {
+            initData = event.initData;
             self.debug.log("DRM: Using initdata from needskey event. length: " + initData.length);
         } else if (!!initData) {
             self.debug.log("DRM: Using initdata from prheader in mpd. length: " + initData.length);
         }
         if (!!initData) {
             session = self.protectionModel.addKeySession(kid, codec, initData);
-            if (session) {
-                self.debug.log("DRM: Added Key Session [" + session.sessionId + "] for KID: " + kid + " type: " + codec + " initData length: " + initData.length);
-            } else {
-                self.debug.log("DRM: Added Key Session for KID: " + kid + " type: " + codec + " initData length: " + initData.length);
-            }
+            self.debug.log("DRM: Added Key Session [" + session.sessionId + "] for KID: " + kid + " type: " + codec + " initData length: " + initData.length);
         } else {
             self.debug.log("DRM: initdata is null.");
         }
-    }, updateFromMessage = function(kid, session, event) {
-        this.protectionModel.updateFromMessage(kid, session, event);
+    }, updateFromMessage = function(kid, event) {
+        this.protectionModel.updateFromMessage(kid, event);
     };
     return {
         system: undefined,
@@ -6423,29 +6676,11 @@ MediaPlayer.dependencies.ProtectionController = function() {
         capabilities: undefined,
         protectionModel: undefined,
         protectionExt: undefined,
-        setup: function() {},
         init: function(videoModel, protectionModel, protectionData) {
-            keySystems = this.protectionExt.getKeySystems(protectionData);
             this.videoModel = videoModel;
+            element = element;
             this.protectionModel = protectionModel;
-            element = this.videoModel.getElement();
-        },
-        getBearerToken: function(keySystem) {
-            var i = 0, ln = keySystems.length, ks;
-            for (i; i < ln; i += 1) {
-                ks = keySystems[i];
-                if (ks.keysTypeString === keySystem) return ks.bearerToken;
-            }
-            return null;
-        },
-        setBearerToken: function(tokenObj) {
-            var i = 0, ln = keySystems.length, ks;
-            for (i; i < ln; i += 1) {
-                ks = keySystems[i];
-                if (ks.keysTypeString === tokenObj.keySystem) {
-                    ks.bearerToken = tokenObj.token;
-                }
-            }
+            keySystems = this.protectionExt.getKeySystems(protectionData);
         },
         selectKeySystem: selectKeySystem,
         ensureKeySession: ensureKeySession,
@@ -6469,23 +6704,30 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
     unsubscribe: undefined,
     supportsCodec: function(mediaKeysString, codec) {
         "use strict";
-        var hasWebKit = "WebKitMediaKeys" in window, hasMs = "MSMediaKeys" in window, hasMediaSource = "MediaKeys" in window, hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in document.createElement("video");
-        if (hasMediaSource) {
+        var hasWebKit = "WebKitMediaKeys" in window, hasMs = "MSMediaKeys" in window, hasMediaKeys = "MediaKeys" in window, hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in document.createElement("video");
+        if (hasWebkitGenerateKeyRequest) {
+            return "com.widevine.alpha" === mediaKeysString;
+        } else if (hasMediaKeys) {
             return MediaKeys.isTypeSupported(mediaKeysString, codec);
         } else if (hasWebKit) {
             return WebKitMediaKeys.isTypeSupported(mediaKeysString, codec);
         } else if (hasMs) {
             return MSMediaKeys.isTypeSupported(mediaKeysString, codec);
-        } else if (hasWebkitGenerateKeyRequest) {
-            return true;
         }
         return false;
     },
     createMediaKeys: function(mediaKeysString) {
         "use strict";
-        var hasWebKit = "WebKitMediaKeys" in window, hasMs = "MSMediaKeys" in window, hasMediaSource = "MediaKeys" in window;
-        if (hasMediaSource) {
+        var hasWebKit = "WebKitMediaKeys" in window, hasMs = "MSMediaKeys" in window, hasMediaKeys = "MediaKeys" in window, hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in document.createElement("video");
+        if (hasMediaKeys) {
+            if ("create" in MediaKeys) {
+                return MediaKeys.create(mediaKeysString);
+            }
             return new MediaKeys(mediaKeysString);
+        } else if (hasWebkitGenerateKeyRequest) {
+            return {
+                keySystem: mediaKeysString
+            };
         } else if (hasWebKit) {
             return new WebKitMediaKeys(mediaKeysString);
         } else if (hasMs) {
@@ -6493,16 +6735,18 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
         }
         return null;
     },
-    setMediaKey: function(element, mediaKeys) {
-        var hasWebKit = "WebKitSetMediaKeys" in element, hasMs = "msSetMediaKeys" in element, hasStd = "SetMediaKeys" in element, hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in document.createElement("video");
-        if (hasStd) {
+    setMediaKey: function(element, mediaKeys, initData) {
+        var hasWebKit = "WebKitSetMediaKeys" in element, hasMs = "msSetMediaKeys" in element, hasSetMediaKeys = "SetMediaKeys" in element, hasCamelCaseSetMediaKeys = "setMediaKeys" in element, hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in element;
+        if (hasWebkitGenerateKeyRequest) {
+            return element.webkitGenerateKeyRequest(mediaKeys.keySystem, initData);
+        } else if (hasSetMediaKeys) {
             return element.SetMediaKeys(mediaKeys);
+        } else if (hasCamelCaseSetMediaKeys) {
+            return element.setMediaKeys(mediaKeys);
         } else if (hasWebKit) {
             return element.WebKitSetMediaKeys(mediaKeys);
         } else if (hasMs) {
             return element.msSetMediaKeys(mediaKeys);
-        } else if (hasWebkitGenerateKeyRequest) {
-            return true;
         } else {
             this.debug.log("no setmediakeys function in element");
         }
@@ -6514,23 +6758,65 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
         return mediaKeys.createSession(mediaCodec, initData);
     },
     getKeySystems: function(protectionData) {
-        var self = this, _protectionData = protectionData, getLAUrl = function(laUrl, keysystem) {
-            if (protectionData && protectionData[keysystem] !== undefined) {
-                if (protectionData[keysystem].laUrl !== null && protectionData[keysystem].laUrl !== "") {
-                    return protectionData[keysystem].laUrl;
+        var self = this, _protectionData = {
+            licenseRequest: {
+                "com.microsoft.playready": {
+                    cdmData: null,
+                    laUrl: null,
+                    headers: null
+                },
+                "com.widevine.alpha": {
+                    cdmData: null,
+                    laUrl: null,
+                    headers: null
                 }
             }
-            return laUrl;
-        }, playreadyGetUpdate = function(event) {
-            var decodedChallenge = null, headers = {}, headerName, key, headerOverrides, parser = new DOMParser(), xmlDoc, msg, laURL, bytes;
-            bytes = new Uint16Array(event.message.buffer);
-            msg = String.fromCharCode.apply(null, bytes);
-            xmlDoc = parser.parseFromString(msg, "application/xml");
-            laURL = event.destinationURL;
+        }, getUpdate = function(event, keySystem, laUrl, headers, message) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", laUrl, true);
+            xhr.responseType = "arraybuffer";
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    var key = new Uint8Array(xhr.response);
+                    if ("com.widevine.alpha" === keySystem) {
+                        event.target.webkitAddKey(keySystem, key, event.initData, event.sessionId);
+                    }
+                    self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, {
+                        data: key
+                    });
+                } else {
+                    self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, "DRM: " + keySystem + ' update, XHR status is "' + xhr.statusText + '" (' + xhr.status + "), expected to be 200. readyState is " + xhr.readyState, null));
+                    return;
+                }
+            };
+            xhr.onabort = function() {
+                self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, "DRM: " + keySystem + ' update, XHR aborted. status is "' + xhr.statusText + '" (' + xhr.status + "), readyState is " + xhr.readyState, null));
+            };
+            xhr.onerror = function() {
+                self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, "DRM: " + keySystem + ' update, XHR error. status is "' + xhr.statusText + '" (' + xhr.status + "), readyState is " + xhr.readyState, null));
+            };
+            var key, headerOverrides = _protectionData.licenseRequest && _protectionData.licenseRequest[keySystem] ? _protectionData.licenseRequest && _protectionData.licenseRequest[keySystem].headers : null;
+            if (headerOverrides) {
+                headers = headers || {};
+                for (key in headerOverrides) {
+                    headers[key] = headerOverrides[key];
+                }
+            }
+            if (headers) {
+                for (key in headers) {
+                    if ("authorization" === key.toLowerCase()) {
+                        xhr.withCredentials = true;
+                    }
+                    xhr.setRequestHeader(key, headers[key]);
+                }
+            }
+            xhr.send(message || event.message);
+        }, playreadyGetUpdate = function(event, laUrl) {
+            var message = null, headers = {}, parser = new DOMParser(), xmlDoc = parser.parseFromString(String.fromCharCode.apply(null, new Uint16Array(event.message.buffer)), "application/xml");
             if (xmlDoc.getElementsByTagName("Challenge")[0]) {
                 var Challenge = xmlDoc.getElementsByTagName("Challenge")[0].childNodes[0].nodeValue;
                 if (Challenge) {
-                    decodedChallenge = BASE64.decode(Challenge);
+                    message = BASE64.decode(Challenge);
                 }
             } else {
                 self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, "DRM: playready update, can not find Challenge in keyMessage", null));
@@ -6543,43 +6829,7 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
             for (var i = 0; i < headerNameList.length; i++) {
                 headers[headerNameList[i].childNodes[0].nodeValue] = headerValueList[i].childNodes[0].nodeValue;
             }
-            if (this.bearerToken) {
-                headers.push({
-                    name: "Authorization",
-                    value: this.bearerToken
-                });
-            }
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                if (xhr.status == 200) {
-                    self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, {
-                        data: new Uint8Array(xhr.response)
-                    });
-                } else {
-                    self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR status is "' + xhr.statusText + '" (' + xhr.status + "), expected to be 200. readyState is " + xhr.readyState, null));
-                }
-            };
-            xhr.onabort = function() {
-                self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR aborted. status is "' + xhr.statusText + '" (' + xhr.status + "), readyState is " + xhr.readyState, null));
-            };
-            xhr.onerror = function() {
-                self.notify(MediaPlayer.dependencies.ProtectionExtensions.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR error. status is "' + xhr.statusText + '" (' + xhr.status + "), readyState is " + xhr.readyState, null));
-            };
-            xhr.open("POST", getLAUrl(laURL, "com.microsoft.playready"));
-            xhr.responseType = "arraybuffer";
-            headerOverrides = _protectionData && _protectionData["com.microsoft.playready"] ? _protectionData["com.microsoft.playready"].headers : null;
-            if (headerOverrides) {
-                for (key in headerOverrides) {
-                    headers[key] = headerOverrides[key];
-                }
-            }
-            for (headerName in headers) {
-                if ("authorization" === headerName.toLowerCase()) {
-                    xhr.withCredentials = true;
-                }
-                xhr.setRequestHeader(headerName, headers[headerName]);
-            }
-            xhr.send(decodedChallenge);
+            getUpdate(event, "com.microsoft.playready", laUrl, headers, message);
         }, playReadyNeedToAddKeySession = function(initData, keySessions) {
             return initData === null && keySessions.length === 0;
         }, playreadyGetInitData = function(data) {
@@ -6607,113 +6857,76 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
             PSSHBox.set(uint8arraydecodedPROHeader, byteCursor);
             byteCursor += PROSize;
             return PSSHBox;
-        }, playReadyCdmData = function() {
-            if (protectionData && protectionData["com.microsoft.playready"] !== undefined) {
-                if (protectionData["com.microsoft.playready"].cdmData !== null && protectionData["com.microsoft.playready"].cdmData !== "") {
-                    var cdmDataArray = [], charCode, cdmData = protectionData["com.microsoft.playready"].cdmData;
-                    cdmDataArray.push(239);
-                    cdmDataArray.push(187);
-                    cdmDataArray.push(191);
-                    for (var i = 0, j = cdmData.length; i < j; ++i) {
-                        charCode = cdmData.charCodeAt(i);
-                        cdmDataArray.push((charCode & 65280) >> 8);
-                        cdmDataArray.push(charCode & 255);
-                    }
-                    return new Uint8Array(cdmDataArray);
-                }
+        }, laUrl = function(laUrl) {
+            if (!String.isNullOrEmpty(laUrl)) {
+                _protectionData.licenseRequest[this.keysTypeString].laUrl = laUrl;
             }
-            return null;
-        }, widevineNeedToAddKeySession = function(initData, keySession, event) {
-            event.target.webkitGenerateKeyRequest("com.widevine.alpha", event.initData);
-            return true;
-        }, widevineGetUpdate = function(event) {
-            var xhr = new XMLHttpRequest(), headers = {}, key, headerOverrides, headerName;
-            xhr.open("POST", getLAUrl("", "com.widevine.alpha"), true);
-            xhr.responseType = "arraybuffer";
-            xhr.onload = function() {
-                if (this.status == 200) {
-                    var key = new Uint8Array(this.response);
-                    event.target.webkitAddKey("com.widevine.alpha", key, event.initData, event.sessionId);
-                    self.notify(self.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, key);
-                } else {
-                    self.notify(self.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new Error('DRM: widevine update, XHR status is "' + xhr.statusText + '" (' + xhr.status + "), expected to be 200. readyState is " + xhr.readyState));
-                }
-            };
-            xhr.onabort = function() {
-                self.notify(self.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new Error('DRM: widevine update, XHR aborted. status is "' + xhr.statusText + '" (' + xhr.status + "), readyState is " + xhr.readyState));
-            };
-            xhr.onerror = function() {
-                self.notify(self.eventList.ENAME_KEY_SYSTEM_UPDATE_COMPLETED, null, new Error('DRM: widevine update, XHR error. status is "' + xhr.statusText + '" (' + xhr.status + "), readyState is " + xhr.readyState));
-            };
-            headerOverrides = _protectionData && _protectionData["com.widevine.alpha"] ? _protectionData["com.widevine.alpha"].headers : null;
-            if (headerOverrides) {
-                for (key in headerOverrides) {
-                    headers[key] = headerOverrides[key];
-                }
+            return _protectionData.licenseRequest[this.keysTypeString].laUrl;
+        }, cdmData = function(cdmData) {
+            if (!String.isNullOrEmpty(cdmData)) {
+                _protectionData.licenseRequest[this.keysTypeString].cdmData = cdmData;
             }
-            for (headerName in headers) {
-                if ("authorization" === headerName.toLowerCase()) {
-                    xhr.withCredentials = true;
-                }
-                xhr.setRequestHeader(headerName, headers[headerName]);
+            return _protectionData.licenseRequest[this.keysTypeString].cdmData;
+        }, playReadyCdmData = function(cdmData) {
+            if (!String.isNullOrEmpty(cdmData)) {
+                _protectionData.licenseRequest[this.keysTypeString].cdmData = cdmData;
             }
-            xhr.send(event.message);
+            var _cdmData = _protectionData.licenseRequest[this.keysTypeString].cdmData;
+            if (null === _cdmData) {
+                return null;
+            }
+            var cdmDataArray = [], charCode;
+            cdmDataArray.push(239);
+            cdmDataArray.push(187);
+            cdmDataArray.push(191);
+            for (var i = 0, j = _cdmData.length; i < j; ++i) {
+                charCode = _cdmData.charCodeAt(i);
+                cdmDataArray.push((charCode & 65280) >> 8);
+                cdmDataArray.push(charCode & 255);
+            }
+            return new Uint8Array(cdmDataArray);
         };
+        if ("undefined" !== typeof protectionData && null !== protectionData) {
+            _protectionData.licenseRequest = protectionData.licenseRequest || _protectionData.licenseRequest;
+        }
         return [ {
             schemeIdUri: "urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95",
             keysTypeString: "com.microsoft.playready",
             isSupported: function(data) {
                 return this.schemeIdUri === data.schemeIdUri.toLowerCase();
             },
+            usePromises: function() {
+                return false;
+            },
             needToAddKeySession: playReadyNeedToAddKeySession,
             getInitData: playreadyGetInitData,
             getUpdate: playreadyGetUpdate,
+            laUrl: laUrl,
             cdmData: playReadyCdmData
-        }, {
-            schemeIdUri: "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",
-            keysTypeString: "com.widevine.alpha",
-            isSupported: function(data) {
-                return this.schemeIdUri === data.schemeIdUri.toLowerCase();
-            },
-            needToAddKeySession: widevineNeedToAddKeySession,
-            getInitData: function() {
-                return null;
-            },
-            getUpdate: widevineGetUpdate,
-            cdmData: function() {
-                return null;
-            }
         }, {
             schemeIdUri: "urn:mpeg:dash:mp4protection:2011",
             keysTypeString: "com.microsoft.playready",
             isSupported: function(data) {
                 return this.schemeIdUri === data.schemeIdUri.toLowerCase() && data.value.toLowerCase() === "cenc";
             },
+            usePromises: function() {
+                return false;
+            },
             needToAddKeySession: playReadyNeedToAddKeySession,
             getInitData: function() {
                 return null;
             },
             getUpdate: playreadyGetUpdate,
+            laUrl: laUrl,
             cdmData: playReadyCdmData
-        }, {
-            schemeIdUri: "urn:mpeg:dash:mp4protection:2011",
-            keysTypeString: "com.widevine.alpha",
-            isSupported: function(data) {
-                return this.schemeIdUri === data.schemeIdUri.toLowerCase() && data.value.toLowerCase() === "cenc";
-            },
-            needToAddKeySession: widevineNeedToAddKeySession,
-            getInitData: function() {
-                return null;
-            },
-            getUpdate: widevineGetUpdate,
-            cdmData: function() {
-                return null;
-            }
         }, {
             schemeIdUri: "urn:uuid:00000000-0000-0000-0000-000000000000",
             keysTypeString: "webkit-org.w3.clearkey",
             isSupported: function(data) {
                 return this.schemeIdUri === data.schemeIdUri.toLowerCase();
+            },
+            usePromises: function() {
+                return false;
             },
             needToAddKeySession: function() {
                 return true;
@@ -6721,15 +6934,51 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
             getInitData: function() {
                 return null;
             },
-            getUpdate: function(event) {
-                var bytes, msg;
-                bytes = new Uint16Array(event.message.buffer);
-                msg = String.fromCharCode.apply(null, bytes);
-                return msg;
+            getUpdate: function(event, laUrl) {
+                return event.message;
             },
-            cdmData: function() {
+            laUrl: laUrl,
+            cdmData: cdmData
+        }, {
+            schemeIdUri: "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed",
+            keysTypeString: "com.widevine.alpha",
+            isSupported: function(data) {
+                return this.schemeIdUri === data.schemeIdUri.toLowerCase();
+            },
+            needToAddKeySession: function() {
+                return false;
+            },
+            usePromises: function() {
+                return "MediaKeys" in window && "function" === typeof MediaKeys.create;
+            },
+            getInitData: function() {
                 return null;
-            }
+            },
+            getUpdate: function(event, laUrl) {
+                getUpdate(event, "com.widevine.alpha", laUrl);
+            },
+            laUrl: laUrl,
+            cdmData: cdmData
+        }, {
+            schemeIdUri: "urn:mpeg:dash:mp4protection:2011",
+            keysTypeString: "com.widevine.alpha",
+            isSupported: function(data) {
+                return this.schemeIdUri === data.schemeIdUri.toLowerCase() && data.value.toLowerCase() === "cenc";
+            },
+            usePromises: function() {
+                return "MediaKeys" in window && "function" === typeof MediaKeys.create;
+            },
+            needToAddKeySession: function() {
+                return false;
+            },
+            getInitData: function() {
+                return null;
+            },
+            getUpdate: function(event, laUrl) {
+                getUpdate(event, "com.widevine.alpha", laUrl);
+            },
+            laUrl: laUrl,
+            cdmData: cdmData
         } ];
     },
     addKey: function(element, type, key, data, id) {
@@ -6748,6 +6997,11 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
         source.addEventListener("mskeyerror", listener, false);
         source.addEventListener("keyerror", listener, false);
     },
+    listenToVideoModelKeyMessage: function(videoModel, listener) {
+        videoModel.listen("webkitkeymessage", listener);
+        videoModel.listen("mskeymessage", listener);
+        videoModel.listen("keymessage", listener);
+    },
     listenToKeyMessage: function(source, listener) {
         source.addEventListener("webkitkeymessage", listener, false);
         source.addEventListener("mskeymessage", listener, false);
@@ -6762,6 +7016,11 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
         source.removeEventListener("webkitkeyerror", listener);
         source.removeEventListener("mskeyerror", listener);
         source.removeEventListener("keyerror", listener);
+    },
+    unlistenToVideoModelKeyMessage: function(videoModel, listener) {
+        videoModel.unlisten("webkitkeymessage", listener);
+        videoModel.unlisten("mskeymessage", listener);
+        videoModel.unlisten("keymessage", listener);
     },
     unlistenToKeyMessage: function(source, listener) {
         source.removeEventListener("webkitkeymessage", listener);
@@ -6782,9 +7041,8 @@ MediaPlayer.dependencies.ProtectionExtensions.eventList = {
 MediaPlayer.models.ProtectionModel = function() {
     "use strict";
     var element = null, keyAddedListener = null, keyErrorListener = null, keyMessageListener = null, session, keySystems = [], onKeySystemUpdateCompleted = function(e) {
-        var hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in document.createElement("video");
         if (e.error) return;
-        if (!hasWebkitGenerateKeyRequest) {
+        if ("update" in session) {
             session.update(e.data.data);
         }
     };
@@ -6799,34 +7057,53 @@ MediaPlayer.models.ProtectionModel = function() {
             element = this.videoModel.getElement();
         },
         addKeySession: function(kid, mediaCodec, initData) {
-            var session = null, hasWebkitGenerateKeyRequest = "webkitGenerateKeyRequest" in document.createElement("video");
-            if (!hasWebkitGenerateKeyRequest) {
-                session = this.protectionExt.createSession(keySystems[kid].keys, mediaCodec, initData, keySystems[kid].keySystem.cdmData());
-                this.protectionExt.listenToKeyAdded(session, keyAddedListener);
-                this.protectionExt.listenToKeyError(session, keyErrorListener);
-                this.protectionExt.listenToKeyMessage(session, keyMessageListener);
-            } else {
-                this.protectionExt.listenToKeyMessage(this.videoModel.getElement(), keyMessageListener);
-            }
+            var session = this.protectionExt.createSession(keySystems[kid].keys, mediaCodec, initData, keySystems[kid].keySystem.cdmData());
+            this.protectionExt.listenToKeyAdded(session, keyAddedListener);
+            this.protectionExt.listenToKeyError(session, keyErrorListener);
+            this.protectionExt.listenToKeyMessage(session, keyMessageListener);
             keySystems[kid].initData = initData;
             keySystems[kid].keySessions.push(session);
             return session;
         },
-        addKeySystem: function(kid, contentProtectionData, keySystemDesc) {
-            var keysLocal = null;
-            keysLocal = this.protectionExt.createMediaKeys(keySystemDesc.keysTypeString);
-            this.protectionExt.setMediaKey(element, keysLocal);
-            keySystems[kid] = {
-                kID: kid,
-                contentProtection: contentProtectionData,
-                keySystem: keySystemDesc,
-                keys: keysLocal,
-                initData: null,
-                keySessions: []
-            };
+        addKeySystem: function(kid, contentProtectionData, keySystemDesc, initData) {
+            var _self = this, _keys = null;
+            if (!keySystemDesc.usePromises()) {
+                _keys = this.protectionExt.createMediaKeys(keySystemDesc.keysTypeString);
+                this.protectionExt.setMediaKey(element, _keys, initData);
+                keySystems[kid] = {
+                    kID: kid,
+                    contentProtection: contentProtectionData,
+                    keySystem: keySystemDesc,
+                    keys: _keys,
+                    initData: null,
+                    keySessions: []
+                };
+            } else {
+                this.protectionExt.createMediaKeys(keySystemDesc.keysTypeString).then(function(mediaKeys) {
+                    _self.protectionExt.setMediaKey(element, mediaKeys, initData);
+                    keySystems[kid] = {
+                        kID: kid,
+                        contentProtection: contentProtectionData,
+                        keySystem: keySystemDesc,
+                        keys: mediaKeys,
+                        initData: null,
+                        keySessions: []
+                    };
+                }).catch(function(error) {
+                    return error;
+                });
+                keySystems[kid] = {
+                    keySystem: {
+                        needToAddKeySession: function() {
+                            return false;
+                        }
+                    }
+                };
+            }
         },
         removeKeySystem: function(kid) {
             if (kid !== null && keySystems[kid] !== undefined && keySystems[kid].keySessions.length !== 0) {
+                this.protectionExt.unlistenToVideoModelKeyMessage(this.videoModel, keyMessageListener);
                 var keySessions = keySystems[kid].keySessions;
                 for (var kss = 0; kss < keySessions.length; ++kss) {
                     this.protectionExt.unlistenToKeyError(keySessions[kss], keyErrorListener);
@@ -6847,9 +7124,9 @@ MediaPlayer.models.ProtectionModel = function() {
             keySystem = keySystems[kid];
             return keySystem.keySystem.getInitData(keySystem.contentProtection);
         },
-        updateFromMessage: function(kid, sessionValue, event) {
-            session = sessionValue;
-            keySystems[kid].keySystem.getUpdate(event);
+        updateFromMessage: function(kid, event) {
+            session = event.target;
+            keySystems[kid].keySystem.getUpdate(event, !String.isNullOrEmpty(keySystems[kid].keySystem.laUrl()) ? keySystems[kid].keySystem.laUrl() : event.destinationURL);
         },
         listenToNeedKey: function(listener) {
             this.protectionExt.listenToNeedKey(this.videoModel, listener);
@@ -6865,6 +7142,7 @@ MediaPlayer.models.ProtectionModel = function() {
         },
         listenToKeyMessage: function(listener) {
             keyMessageListener = listener;
+            this.protectionExt.listenToVideoModelKeyMessage(this.videoModel, listener);
             for (var ks = 0; ks < keySystems.length; ++ks) {
                 var keySessions = keySystems[ks].keySessions;
                 for (var kss = 0; kss < keySessions.length; ++kss) {
@@ -7359,30 +7637,27 @@ MediaPlayer.dependencies.Stream = function() {
         this.debug.log("Do seek: " + time);
         this.playbackController.seek(time);
     }, onMediaSourceNeedsKey = function(event) {
-        var self = this, mediaInfo = mediaInfos.video, videoCodec = mediaInfos ? mediaInfos.video.codec : null, type;
-        type = event.type !== "msneedkey" ? event.type : videoCodec;
+        var mediaInfo = mediaInfos ? mediaInfos.video : null, videoCodec = mediaInfos && mediaInfos.video ? mediaInfos.video.codec : null;
         initData.push({
-            type: type,
+            type: event.type,
             initData: event.initData
         });
-        this.debug.log("DRM: Key required for - " + type);
+        this.debug.log("DRM: Key required for - " + event.type);
         if (mediaInfo && !!videoCodec && !kid) {
             try {
-                kid = self.protectionController.selectKeySystem(mediaInfo);
+                kid = this.protectionController.selectKeySystem(mediaInfo, event);
             } catch (error) {
-                pause.call(self);
-                self.debug.log(error);
-                self.errHandler.mediaKeySystemSelectionError(error);
+                pause.call(this);
+                this.debug.log(error);
+                this.errHandler.mediaKeySystemSelectionError(error);
             }
         }
         if (!!kid) {
-            self.protectionController.ensureKeySession(kid, type, event);
+            this.protectionController.ensureKeySession(kid, event.type !== "msneedkey" ? event.type : videoCodec, event);
         }
     }, onMediaSourceKeyMessage = function(event) {
-        var self = this, session = null;
         this.debug.log("DRM: Got a key message...");
-        session = event.target;
-        self.protectionController.updateFromMessage(kid, session, event);
+        this.protectionController.updateFromMessage(kid, event);
     }, onMediaSourceKeyAdded = function() {
         this.debug.log("DRM: Key added.");
     }, onMediaSourceKeyError = function() {
@@ -7417,16 +7692,17 @@ MediaPlayer.dependencies.Stream = function() {
         this.debug.log(msg);
         this.errHandler.mediaKeySessionError(msg);
     }, setUpMediaSource = function(mediaSourceArg, callback) {
-        var self = this, onMediaSourceOpen = function(e) {
+        var self = this, sourceUrl, onMediaSourceOpen = function(e) {
             self.debug.log("MediaSource is open!");
             self.debug.log(e);
+            window.URL.revokeObjectURL(sourceUrl);
             mediaSourceArg.removeEventListener("sourceopen", onMediaSourceOpen);
             mediaSourceArg.removeEventListener("webkitsourceopen", onMediaSourceOpen);
             callback(mediaSourceArg);
         };
         mediaSourceArg.addEventListener("sourceopen", onMediaSourceOpen, false);
         mediaSourceArg.addEventListener("webkitsourceopen", onMediaSourceOpen, false);
-        self.mediaSourceExt.attachMediaSource(mediaSourceArg, self.videoModel);
+        sourceUrl = self.mediaSourceExt.attachMediaSource(mediaSourceArg, self.videoModel);
     }, tearDownMediaSource = function() {
         var self = this, ln = streamProcessors.length, i = 0, processor;
         for (i; i < ln; i += 1) {
@@ -7668,7 +7944,7 @@ MediaPlayer.dependencies.Stream = function() {
             keyAddedListener = onMediaSourceKeyAdded.bind(this);
             keyErrorListener = onMediaSourceKeyError.bind(this);
             this.protectionModel = this.system.getObject("protectionModel");
-            this.protectionModel.init(this.getVideoModel());
+            this.protectionModel.init(this.videoModel);
             this.protectionController = this.system.getObject("protectionController");
             this.protectionController.init(this.videoModel, this.protectionModel, protectionData);
             this.protectionModel.listenToNeedKey(needKeyListener);
@@ -8215,6 +8491,10 @@ MediaPlayer.dependencies.StreamProcessor = function() {
 
 MediaPlayer.dependencies.StreamProcessor.prototype = {
     constructor: MediaPlayer.dependencies.StreamProcessor
+};
+
+String.isNullOrEmpty = String.isNullOrEmpty || function(str) {
+    return typeof str === "undefined" || str === null || str === void 0 || str === "";
 };
 
 MediaPlayer.models.URIQueryAndFragmentModel = function() {
