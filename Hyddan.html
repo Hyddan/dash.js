@@ -70,6 +70,8 @@
     <script src="app/js/streaming/rules/ABRRules/DownloadRatioRule.js"></script>
     <script src="app/js/streaming/rules/ABRRules/InsufficientBufferRule.js"></script>
     <script src="app/js/streaming/rules/ABRRules/LimitSwitchesRule.js"></script>
+    <script src="app/js/streaming/rules/ABRRules/BufferOccupancyRule.js"></script>
+    <script src="app/js/streaming/rules/ABRRules/ThroughputRule.js"></script>
     <script src="app/js/streaming/rules/ABRRules/ABRRulesCollection.js"></script>
     <script src="app/js/streaming/EventController.js"></script>
     <script src="app/js/streaming/URIQueryAndFragmentModel.js"></script>
@@ -94,6 +96,7 @@
     <script src="app/js/streaming/vo/MetricsList.js"></script>
     <script src="app/js/streaming/MetricsModel.js"></script>
     <script src="app/js/streaming/vo/metrics/BufferLevel.js"></script>
+    <script src="app/js/streaming/vo/metrics/BufferState.js"></script>
     <script src="app/js/streaming/vo/metrics/HTTPRequest.js"></script>
     <script src="app/js/streaming/vo/metrics/PlayList.js"></script>
     <script src="app/js/streaming/vo/metrics/RepresentationSwitch.js"></script>
@@ -141,7 +144,7 @@
                                         },
                                         'com.widevine.alpha': {
                                             cdmData: null,
-                                            laUrl: Hyddan.Utils.getQueryStringParameter('proxyUrl') || 'https://localhost:9900/proxy',
+                                            laUrl: Hyddan.Utils.getQueryStringParameter('proxyUrl') || 'http://localhost:9900/proxy',
                                             headers: {
                                                 'X-CustomData': JSON.stringify({
                                                     deviceId: 'SomeDeviceId',
@@ -155,6 +158,7 @@
                                 },
                                 source: Hyddan.Utils.getQueryStringParameter('url') || 'http://localhost/Playground/Dash/Manifest.mpd'
                             })
+							.volume(0.1)
                             .play();
         };
     </script>
