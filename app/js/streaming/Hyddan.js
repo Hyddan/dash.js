@@ -227,6 +227,12 @@ window.Hyddan = (function (Hyddan) {
             
             return Player;
         };
+		Player.destroy = function () {
+			_reset();
+            Player.Events.onDestroy();
+            
+            return Player;
+		};
         Player.initialize = function (context) {
             (_di = new dijon.System())
                 .mapValue('system', _di)
@@ -236,11 +242,6 @@ window.Hyddan = (function (Hyddan) {
             
             Player.DashJs.initialize();
             Player.Events.onInitialize(_context);
-            
-            return Player;
-        };
-        Player.destroy = function () {
-            Player.Events.onDestroy();
             
             return Player;
         };
@@ -260,6 +261,7 @@ window.Hyddan = (function (Hyddan) {
             if (_isPlaying) {
                 _element.pause();
                 _isPlaying = _trackProgress = false;
+				Player.Events.onPause();
             }
             
             return Player;
@@ -268,6 +270,7 @@ window.Hyddan = (function (Hyddan) {
             if (!_isPlaying) {
                 _element.play();
                 _isPlaying = _trackProgress = true;
+				Player.Events.onPlay();
             }
             
             return Player;
