@@ -49,16 +49,16 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 hasMediaKeys = ('MediaKeys' in window),
                 hasWebkitGenerateKeyRequest = ('webkitGenerateKeyRequest' in document.createElement('video'));
 
-        if (hasMediaKeys) {
+        if (hasWebkitGenerateKeyRequest && (!hasMediaKeys || !('create' in MediaKeys))) {
+            return {
+                keySystem: mediaKeysString
+            };
+        } else if (hasMediaKeys) {
             if ('create' in MediaKeys) {
                 return MediaKeys.create(mediaKeysString);
             }
 
             return new MediaKeys(mediaKeysString);
-        } else if (hasWebkitGenerateKeyRequest) {
-            return {
-                keySystem: mediaKeysString
-            };
         } else if (hasWebKit) {
             return new WebKitMediaKeys(mediaKeysString);
         } else if (hasMs) {
