@@ -153,7 +153,7 @@ window.Hyddan = (function (Hyddan) {
                 _di.mapValue('scheduleWhilePaused', false);
                 _di.mapOutlet('scheduleWhilePaused', 'stream');
                 _di.mapOutlet('scheduleWhilePaused', 'scheduleController');
-                _di.mapValue('bufferMax', MediaPlayer.dependencies.BufferController.BUFFER_SIZE_REQUIRED);
+                _di.mapValue('bufferMax', MediaPlayer.dependencies.BufferController.BUFFER_SIZE_MIN);
                 _di.mapOutlet('bufferMax', 'bufferController');
                 
                 DashJs.abrController = _di.getObject('abrController');
