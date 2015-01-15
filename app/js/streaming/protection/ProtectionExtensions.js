@@ -108,6 +108,9 @@ MediaPlayer.dependencies.ProtectionExtensions = function () {
 
             // Look for ContentProtection element that indicates use of CommonEncryption
             if (!ks ) {
+                if ('undefined' === typeof (initData.buffer)) {
+                    initData.buffer = initData;
+                }
                 cp = MediaPlayer.dependencies.protection.CommonEncryption.findCencContentProtection(mediaInfo.contentProtection);
 
                 if (cp) {

@@ -160,7 +160,7 @@ MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
             // TODO: Need to check for duplicate initData.  If we already have
             // a KeySession for this exact initData, we shouldn't create a new session.
 
-            var session = mediaKeys.createSession(contentType, initData);
+            var session = !String.isNullOrEmpty(this.keySystem.cdmData()) ? mediaKeys.createSession(contentType, initData, this.keySystem.cdmData()) : mediaKeys.createSession(contentType, initData);
             var sessionToken = createSessionToken.call(this, session, initData);
 
             // Add all event listeners
@@ -171,8 +171,6 @@ MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
 
             // Add to our session list
             sessions.push(sessionToken);
-
-            return sessionToken;
         },
 
         updateKeySession: function(sessionToken, message) {

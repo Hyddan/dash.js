@@ -19,9 +19,7 @@ MediaPlayer.dependencies.ProtectionController = function () {
             if (e.error) {
                 this.debug.log(e.error);
             } else {
-                var keyMessageEvent = e.data;
-                this.protectionModel.keySystem.doLicenseRequest(keyMessageEvent.message,
-                    keyMessageEvent.defaultURL, keyMessageEvent.sessionToken);
+                this.protectionModel.keySystem.requestLicense(e.data);
             }
         };
 
@@ -69,5 +67,3 @@ MediaPlayer.dependencies.ProtectionController = function () {
 MediaPlayer.dependencies.ProtectionController.prototype = {
     constructor: MediaPlayer.dependencies.ProtectionController
 };
-
-

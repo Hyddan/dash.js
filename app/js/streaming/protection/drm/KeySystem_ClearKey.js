@@ -29,16 +29,15 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-MediaPlayer.dependencies.protection.KeySystem_ClearKey = function() {
-    "use strict";
+MediaPlayer.dependencies.protection.KeySystem_ClearKey = function () {
+    'use strict';
 
-    var keySystemStr = "webkit-org.w3.clearkey",
-        keySystemUUID = "00000000-0000-0000-0000-000000000001",
-        protData;
+    var keySystemStr = 'webkit-org.w3.clearkey',
+        keySystemUUID = '00000000-0000-0000-0000-000000000001',
+        _protectionData;
 
     return {
-
-        schemeIdURI: undefined,
+        schemeIdURI: 'urn:uuid:' + keySystemUUID,
         systemString: keySystemStr,
         uuid: keySystemUUID,
         notify: undefined,
@@ -51,16 +50,17 @@ MediaPlayer.dependencies.protection.KeySystem_ClearKey = function() {
          * @param protectionData {ProtectionData} data providing overrides for
          * default or CDM-provided values
          */
-        init: function(protectionData) {
-            this.schemeIdURI = "urn:uuid:" + keySystemUUID;
-            protData = protectionData;
+        init: function (protectionData) {
+            if ('undefined' !== typeof (protectionData) && null !== protectionData) {
+                _protectionData.licenseRequest = protectionData.licenseRequest || _protectionData.licenseRequest;
+            }
         },
 
-        doLicenseRequest: function() { },
+        requestLicense: function () { },
 
-        getInitData: function() { return null; },
+        getInitData: function () { return null; },
 
-        initDataEquals: function() { return false; }
+        initDataEquals: function () { return false; }
     };
 };
 

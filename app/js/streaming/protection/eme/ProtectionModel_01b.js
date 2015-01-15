@@ -245,7 +245,6 @@ MediaPlayer.models.ProtectionModel_01b = function () {
         },
 
         createKeySession: function(initData/*, contentType, initDataType*/) {
-
             if (!this.keySystem) {
                 throw new Error("Can not create sessions until you have selected a key system");
             }
@@ -254,22 +253,18 @@ MediaPlayer.models.ProtectionModel_01b = function () {
             // a KeySession for this exact initData, we shouldn't create a new session.
 
             // Determine if creating a new session is allowed
-            if (moreSessionsAllowed || sessions.length === 0) {
-
-                var newSession = {
-                    prototype: (new MediaPlayer.models.SessionToken()).prototype,
-                    sessionID: null,
-                    initData: initData
-                };
-                pendingSessions.push(newSession);
-
-                // Send our request to the CDM
-                videoElement[api.generateKeyRequest](this.keySystem.systemString, initData);
-
-                return newSession;
+            if (!(moreSessionsAllowed || sessions.length === 0)) {
+                throw new Error("Multiple sessions not allowed!");
             }
 
-            throw new Error("Multiple sessions not allowed!");
+            pendingSessions.push({
+                prototype: (new MediaPlayer.models.SessionToken()).prototype,
+                sessionID: null,
+                initData: initData
+            });
+
+            // Send our request to the CDM
+            videoElement[api.generateKeyRequest](this.keySystem.systemString, initData);
         },
 
         updateKeySession: function(sessionToken, message) {
