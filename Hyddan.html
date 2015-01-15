@@ -61,9 +61,6 @@
     <script src="app/js/streaming/StringExtensions.js"></script>
     <script src="app/js/streaming/BufferController.js"></script>
     <script src="app/js/streaming/LiveEdgeFinder.js"></script>
-    <script src="app/js/streaming/ProtectionModel.js"></script>
-    <script src="app/js/streaming/ProtectionController.js"></script>
-    <script src="app/js/streaming/ProtectionExtensions.js"></script>
     <script src="app/js/streaming/Notifier.js"></script>
     <script src="app/js/streaming/rules/SwitchRequest.js"></script>
     <script src="app/js/streaming/rules/RulesContext.js"></script>
@@ -76,6 +73,27 @@
     <script src="app/js/streaming/EventController.js"></script>
     <script src="app/js/streaming/URIQueryAndFragmentModel.js"></script>
     <script src="app/js/streaming/vo/URIFragmentData.js"></script>
+    <script src="app/js/streaming/TimeSyncController.js"></script>
+
+    <!-- Protection -->
+    <script src="app/js/streaming/protection/eme/ProtectionModel_01b.js"></script>
+    <script src="app/js/streaming/protection/eme/ProtectionModel_3Feb2014.js"></script>
+    <script src="app/js/streaming/protection/eme/ProtectionModel_28Aug2014.js"></script>
+    <script src="app/js/streaming/protection/eme/ProtectionModel_10Dec2014.js"></script>
+    <script src="app/js/streaming/protection/eme/ProtectionModel.js"></script>
+    <script src="app/js/streaming/protection/eme/SessionToken.js"></script>
+    <script src="app/js/streaming/protection/drm/KeySystem.js"></script>
+    <script src="app/js/streaming/protection/drm/KeySystem_ClearKey.js"></script>
+    <script src="app/js/streaming/protection/drm/KeySystem_PlayReady.js"></script>
+    <script src="app/js/streaming/protection/drm/KeySystem_Widevine.js"></script>
+    <script src="app/js/streaming/protection/CommonEncryption.js"></script>
+    <script src="app/js/streaming/protection/ProtectionController.js"></script>
+    <script src="app/js/streaming/protection/ProtectionExtensions.js"></script>
+    <script src="app/js/streaming/vo/protection/KeyError.js"></script>
+    <script src="app/js/streaming/vo/protection/KeyMessage.js"></script>
+    <script src="app/js/streaming/vo/protection/LicenseRequestComplete.js"></script>
+    <script src="app/js/streaming/vo/protection/NeedKey.js"></script>
+    <script src="app/js/streaming/vo/protection/ProtectionData.js"></script>
 
     <script src="app/js/streaming/rules/SchedulingRules/RulesController.js"></script>
     <script src="app/js/streaming/rules/SchedulingRules/ScheduleRulesCollection.js"></script>
@@ -83,7 +101,10 @@
     <script src="app/js/streaming/rules/SchedulingRules/PendingRequestsRule.js"></script>
     <script src="app/js/streaming/rules/SchedulingRules/SameTimeRequestRule.js"></script>
     <script src="app/js/streaming/rules/SchedulingRules/PlaybackTimeRule.js"></script>
-    <script src="app/js/streaming/rules/SchedulingRules/LiveEdgeBinarySearchRule.js"></script>
+
+    <script src="app/js/streaming/rules/SyncronisationRules/LiveEdgeWithTimeSyncronisationRule.js"></script>
+    <script src="app/js/streaming/rules/SyncronisationRules/LiveEdgeBinarySearchRule.js"></script>
+    <script src="app/js/streaming/rules/SyncronisationRules/SyncronisationRulesCollection.js"></script>
 
     <!--Captioning-->
     <script src="app/js/streaming/captioning/VTTParser.js"></script>
@@ -116,6 +137,7 @@
     <script src="app/js/dash/vo/Segment.js"></script>
     <script src="app/js/dash/vo/Event.js"></script>
     <script src="app/js/dash/vo/EventStream.js"></script>
+    <script src="app/js/dash/vo/UTCTiming.js"></script>
     <script src="app/js/dash/DashParser.js"></script>
     <script src="app/js/dash/DashHandler.js"></script>
     <script src="app/js/dash/RepresentationController.js"></script>
@@ -136,13 +158,15 @@
                                 },
                                 object: document.querySelector('.dash-video-player video'),
                                 protection: {
-                                    licenseRequest: {
-                                        'com.microsoft.playready': {
+                                    'com.microsoft.playready': {
+                                        licenseRequest: {
                                             cdmData: null,
                                             laUrl: null,
                                             headers: null
-                                        },
-                                        'com.widevine.alpha': {
+                                        }
+                                    },
+                                    'com.widevine.alpha': {
+                                        licenseRequest: {
                                             cdmData: null,
                                             laUrl: Hyddan.Utils.getQueryStringParameter('proxyUrl') || 'http://localhost:9900/proxy',
                                             headers: {
@@ -158,7 +182,7 @@
                                 },
                                 source: Hyddan.Utils.getQueryStringParameter('url') || 'http://localhost/Playground/Dash/Manifest.mpd'
                             })
-							.volume(0.1)
+                            .volume(0.1)
                             .play();
         };
     </script>

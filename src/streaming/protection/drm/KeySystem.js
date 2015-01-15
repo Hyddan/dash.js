@@ -60,12 +60,9 @@ MediaPlayer.dependencies.protection.KeySystem = {
     /**
      * Request a content key/license from a remote server
      *
-     * @param msg the request message from the CDM
-     * @param laURL default URL provided by the CDM
-     * @param requestData object that will be returned in the
-     * ENAME_LICENSE_REQUEST_COMPLETE event
+     * @param event the message event from the CDM
      *
-     doLicenseRequest: function(msg, laURL, requestData) {},
+     requestLicense: function(event) {},
      */
 
     /**
@@ -91,7 +88,7 @@ MediaPlayer.dependencies.protection.KeySystem = {
      */
 
     eventList: {
-        ENAME_LICENSE_REQUEST_COMPLETE: "licenseRequestComplete",
+        ENAME_LICENSE_REQUEST_COMPLETE: 'licenseRequestComplete'
     }
 };
 

@@ -12,20 +12,24 @@
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 MediaPlayer.di.Context = function () {
-    "use strict";
+    'use strict';
 
     var mapProtectionModel = function() {
-        var videoElement = document.createElement("video");
+        var videoElement = document.createElement('video');
 
         // Detect EME APIs.  Look for newest API versions first
-        if (MediaPlayer.models.ProtectionModel_3Feb2014.detect(videoElement)) {
+        if (MediaPlayer.models.ProtectionModel_10Dec2014.detect(videoElement)) {
+            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_10Dec2014);
+        } else if (MediaPlayer.models.ProtectionModel_28Aug2014.detect(videoElement)) {
+            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_28Aug2014);
+        } else if (MediaPlayer.models.ProtectionModel_3Feb2014.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_3Feb2014);
         } else if (MediaPlayer.models.ProtectionModel_01b.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_01b);
         } else {
-            var debug = this.system.getObject("debug");
-            debug.log("No supported version of EME detected on this user agent!");
-            debug.log("Attempts to play encrypted content will fail!");
+            var debug = this.system.getObject('debug');
+            debug.log('No supported version of EME detected on this user agent!');
+            debug.log('Attempts to play encrypted content will fail!');
         }
     };
 
