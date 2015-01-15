@@ -227,12 +227,12 @@ window.Hyddan = (function (Hyddan) {
             
             return Player;
         };
-		Player.destroy = function () {
-			_reset();
+        Player.destroy = function () {
+            _reset();
             Player.Events.onDestroy();
             
             return Player;
-		};
+        };
         Player.initialize = function (context) {
             (_di = new dijon.System())
                 .mapValue('system', _di)
@@ -261,7 +261,7 @@ window.Hyddan = (function (Hyddan) {
             if (_isPlaying) {
                 _element.pause();
                 _isPlaying = _trackProgress = false;
-				Player.Events.onPause();
+                Player.Events.onPause();
             }
             
             return Player;
@@ -270,7 +270,7 @@ window.Hyddan = (function (Hyddan) {
             if (!_isPlaying) {
                 _element.play();
                 _isPlaying = _trackProgress = true;
-				Player.Events.onPlay();
+                Player.Events.onPlay();
             }
             
             return Player;
@@ -308,6 +308,7 @@ window.Hyddan = (function (Hyddan) {
                     Player.DashJs.streamController.subscribe(MediaPlayer.dependencies.StreamController.eventList.ENAME_STREAMS_COMPOSED, Player.DashJs.manifestUpdater);
                     Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.streamController);
                     Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.manifestUpdater);
+                    Player.DashJs.streamController.initialize();
                     Player.DashJs.streamController.setVideoModel(Player.DashJs.videoModel);
                     Player.DashJs.streamController.setAutoPlay(_autoPlay);
                     Player.DashJs.streamController.setProtectionData(_protection);
