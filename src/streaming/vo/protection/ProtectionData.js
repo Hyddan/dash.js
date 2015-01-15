@@ -33,15 +33,15 @@
  * Data used to customize KeySystems and override default or CDM-provided
  * values
  *
- * @param laURL
- * @param httpRequestHeaders
- * @param bearerToken
+ * @param laUrl
+ * @param headers
+ * @param cdmData
  * @constructor
  */
-MediaPlayer.vo.protection.ProtectionData = function(laURL, httpRequestHeaders, bearerToken) {
-    this.laURL = laURL;
-    this.httpRequestHeaders = httpRequestHeaders;
-    this.bearerToken = bearerToken;
+MediaPlayer.vo.protection.ProtectionData = function(laUrl, headers, cdmData) {
+    this.laUrl = laUrl;
+    this.headers = headers;
+    this.cdmData = cdmData;
 };
 
 MediaPlayer.vo.protection.ProtectionData.prototype = {
