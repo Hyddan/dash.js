@@ -30,162 +30,197 @@
  */
 
 MediaPlayer.dependencies.protection.KeySystem_PlayReady = function() {
-    "use strict";
+    'use strict';
 
-    var keySystemStr = "com.microsoft.playready",
-        keySystemUUID = "9a04f079-9840-4286-ab92-e65be0885f95",
-        protData,
-
-        requestLicense = function(message, laURL, requestData) {
-            var decodedChallenge = null,
-                headers = {},
-                headerName,
-                key,
-                headerOverrides,
-                parser = new DOMParser(),
-                xmlDoc,
-                msg,
-                bytes,
-                self = this;
-
-            bytes = new Uint16Array(message.buffer);
-            msg = String.fromCharCode.apply(null, bytes);
-            xmlDoc = parser.parseFromString(msg, "application/xml");
-
-            if (xmlDoc.getElementsByTagName("Challenge")[0]) {
-                var Challenge = xmlDoc.getElementsByTagName("Challenge")[0].childNodes[0].nodeValue;
-                if (Challenge) {
-                    decodedChallenge = BASE64.decode(Challenge);
+    var keySystemStr = 'com.microsoft.playready',
+            keySystemUUID = '9a04f079-9840-4286-ab92-e65be0885f95',
+            _protectionData = {
+                licenseRequest: {
+                    cdmData: null,
+                    laUrl: null,
+                    headers: null
                 }
-            }
-            else {
-                self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
-                    null, new MediaPlayer.vo.Error(null, 'DRM: playready update, can not find Challenge in keyMessage', null));
-            }
+            },
 
-            var headerNameList = xmlDoc.getElementsByTagName("name");
-            var headerValueList = xmlDoc.getElementsByTagName("value");
+            requestLicense = function (event) {
+                var self = this,
+                        keyMessageEvent = event,
+                        xhr = new XMLHttpRequest(),
+                        message = null,
+                        laUrl = self.laUrl() || keyMessageEvent.defaultURL,
+                        headerOverrides = self.headers(),
+                        headers = {},
+                        key,
+                        parser = new DOMParser(),
+                        xmlDoc = parser.parseFromString(String.fromCharCode.apply(null, new Uint16Array(keyMessageEvent.message.buffer)), 'application/xml');
 
-            if (headerNameList.length != headerValueList.length) {
-                self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
-                    null, new MediaPlayer.vo.Error(null, 'DRM: playready update, invalid header name/value pair in keyMessage', null));
-            }
-
-            for (var i = 0; i < headerNameList.length; i++) {
-                headers[headerNameList[i].childNodes[0].nodeValue] = headerValueList[i].childNodes[0].nodeValue;
-            }
-
-            if (protData && protData.bearerToken) {
-                headers.Authorization = protData.bearerToken;
-            }
-
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function () {
-                if (xhr.status == 200) {
-                    var event = new MediaPlayer.vo.protection.LicenseRequestComplete(new Uint8Array(xhr.response), requestData);
+                if (!laUrl) {
                     self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
-                        event);
+                        null, new Error('DRM: No valid PlayReady Proxy Server URL specified!'));
                 } else {
-                    self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
-                        null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR status is "' + xhr.statusText + '" (' + xhr.status + '), expected to be 200. readyState is ' + xhr.readyState, null));
+                    if (xmlDoc.getElementsByTagName('Challenge')[0]) {
+                        var Challenge = xmlDoc.getElementsByTagName('Challenge')[0].childNodes[0].nodeValue;
+                        if (Challenge) {
+                            message = BASE64.decode(Challenge);
+                        }
+                    }
+                    else {
+                        self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
+                            null, new MediaPlayer.vo.Error(null, 'DRM: playready update, can not find Challenge in keyMessage', null));
+                    }
+
+                    var headerNameList = xmlDoc.getElementsByTagName('name');
+                    var headerValueList = xmlDoc.getElementsByTagName('value');
+
+                    if (headerNameList.length != headerValueList.length) {
+                        self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
+                            null, new MediaPlayer.vo.Error(null, 'DRM: playready update, invalid header name/value pair in keyMessage', null));
+                    }
+
+                    for (var i = 0; i < headerNameList.length; i++) {
+                        headers[headerNameList[i].childNodes[0].nodeValue] = headerValueList[i].childNodes[0].nodeValue;
+                    }
+
+                    xhr.onload = function () {
+                        if (xhr.status == 200) {
+                            var event = new MediaPlayer.vo.protection.LicenseRequestComplete(new Uint8Array(xhr.response), keyMessageEvent.sessionToken);
+                            self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
+                                event);
+                        } else {
+                            self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
+                                null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR status is "' + xhr.statusText + '" (' + xhr.status + '), expected to be 200. readyState is ' + xhr.readyState, null));
+                        }
+                    };
+                    xhr.onabort = function () {
+                        self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
+                            null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR aborted. status is "' + xhr.statusText + '" (' + xhr.status + '), readyState is ' + xhr.readyState, null));
+                    };
+                    xhr.onerror = function () {
+                        self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
+                            null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR error. status is "' + xhr.statusText + '" (' + xhr.status + '), readyState is ' + xhr.readyState, null));
+                    };
+
+                    xhr.open('POST', laUrl);
+                    xhr.responseType = 'arraybuffer';
+
+                    if (headerOverrides) {
+                        for (key in headerOverrides) {
+                            headers[key] = headerOverrides[key];
+                        }
+                    }
+
+                    for (key in headers) {
+                        if ('authorization' === key.toLowerCase()) {
+                            xhr.withCredentials = true;
+                        }
+
+                        xhr.setRequestHeader(key, headers[key]);
+                    }
+
+                    xhr.send(message);
                 }
-            };
-            xhr.onabort = function () {
-                self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
-                    null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR aborted. status is "' + xhr.statusText + '" (' + xhr.status + '), readyState is ' + xhr.readyState, null));
-            };
-            xhr.onerror = function () {
-                self.notify(MediaPlayer.dependencies.protection.KeySystem.eventList.ENAME_LICENSE_REQUEST_COMPLETE,
-                    null, new MediaPlayer.vo.Error(null, 'DRM: playready update, XHR error. status is "' + xhr.statusText + '" (' + xhr.status + '), readyState is ' + xhr.readyState, null));
-            };
+            },
 
-            xhr.open('POST', (protData && protData.laURL && protData.laURL !== "") ? protData.laURL : laURL);
-            xhr.responseType = 'arraybuffer';
+            parseInitDataFromContentProtection = function(cpData) {
+                // * desc@ getInitData
+                // *   generate PSSH data from PROHeader defined in MPD file
+                // *   PSSH format:
+                // *   size (4)
+                // *   box type(PSSH) (8)
+                // *   Protection SystemID (16)
+                // *   protection system data size (4) - length of decoded PROHeader
+                // *   decoded PROHeader data from MPD file
+                var byteCursor = 0,
+                    PROSize = 0,
+                    PSSHSize = 0,
+                    PSSHBoxType = new Uint8Array([0x70, 0x73, 0x73, 0x68, 0x00, 0x00, 0x00, 0x00 ]), //'PSSH' 8 bytes
+                    playreadySystemID = new Uint8Array([0x9a, 0x04, 0xf0, 0x79, 0x98, 0x40, 0x42, 0x86, 0xab, 0x92, 0xe6, 0x5b, 0xe0, 0x88, 0x5f, 0x95]),
+                    uint8arraydecodedPROHeader = null,
+                    PSSHBoxBuffer = null,
+                    PSSHBox = null,
+                    PSSHData = null;
 
-            headerOverrides = (protData) ? protData.httpRequestHeaders : null;
-
-            if (headerOverrides) {
-                for (key in headerOverrides) {
-                    headers[key] = headerOverrides[key];
+                if ('pro' in cpData) {
+                    uint8arraydecodedPROHeader = BASE64.decodeArray(cpData.pro.__text);
                 }
-            }
-
-            for (headerName in headers) {
-                if ('authorization' === headerName.toLowerCase()) {
-                    xhr.withCredentials = true;
+                else if ('prheader' in cpData) {
+                    uint8arraydecodedPROHeader = BASE64.decodeArray(cpData.prheader.__text);
+                }
+                else {
+                    return null;
                 }
 
-                xhr.setRequestHeader(headerName, headers[headerName]);
-            }
+                PROSize = uint8arraydecodedPROHeader.length;
+                PSSHSize = 0x4 + PSSHBoxType.length + playreadySystemID.length + 0x4 + PROSize;
 
-            if (protData && protData.withCredentials) xhr.withCredentials = true;
+                PSSHBoxBuffer = new ArrayBuffer(PSSHSize);
 
-            xhr.send(decodedChallenge);
-        },
+                PSSHBox = new Uint8Array(PSSHBoxBuffer);
+                PSSHData = new DataView(PSSHBoxBuffer);
 
-        parseInitDataFromContentProtection = function(cpData) {
-            // * desc@ getInitData
-            // *   generate PSSH data from PROHeader defined in MPD file
-            // *   PSSH format:
-            // *   size (4)
-            // *   box type(PSSH) (8)
-            // *   Protection SystemID (16)
-            // *   protection system data size (4) - length of decoded PROHeader
-            // *   decoded PROHeader data from MPD file
-            var byteCursor = 0,
-                PROSize,
-                PSSHSize,
-                PSSHBoxType = new Uint8Array([0x70, 0x73, 0x73, 0x68, 0x00, 0x00, 0x00, 0x00 ]), //'PSSH' 8 bytes
-                playreadySystemID = new Uint8Array([0x9a, 0x04, 0xf0, 0x79, 0x98, 0x40, 0x42, 0x86, 0xab, 0x92, 0xe6, 0x5b, 0xe0, 0x88, 0x5f, 0x95]),
-                uint8arraydecodedPROHeader = null,
-                PSSHBoxBuffer,
-                PSSHBox,
-                PSSHData;
+                PSSHData.setUint32(byteCursor, PSSHSize);
+                byteCursor += 0x4;
 
-            if ("pro" in cpData) {
-                uint8arraydecodedPROHeader = BASE64.decodeArray(cpData.pro.__text);
-            }
-            else if ("prheader" in cpData) {
-                uint8arraydecodedPROHeader = BASE64.decodeArray(cpData.prheader.__text);
-            }
-            else {
-                return null;
-            }
+                PSSHBox.set(PSSHBoxType, byteCursor);
+                byteCursor += PSSHBoxType.length;
 
-            PROSize = uint8arraydecodedPROHeader.length;
-            PSSHSize = 0x4 + PSSHBoxType.length + playreadySystemID.length + 0x4 + PROSize;
+                PSSHBox.set(playreadySystemID, byteCursor);
+                byteCursor += playreadySystemID.length;
 
-            PSSHBoxBuffer = new ArrayBuffer(PSSHSize);
+                PSSHData.setUint32(byteCursor, PROSize);
+                byteCursor += 0x4;
 
-            PSSHBox = new Uint8Array(PSSHBoxBuffer);
-            PSSHData = new DataView(PSSHBoxBuffer);
+                PSSHBox.set(uint8arraydecodedPROHeader, byteCursor);
+                byteCursor += PROSize;
 
-            PSSHData.setUint32(byteCursor, PSSHSize);
-            byteCursor += 0x4;
+                return PSSHBox.buffer;
+            },
 
-            PSSHBox.set(PSSHBoxType, byteCursor);
-            byteCursor += PSSHBoxType.length;
+            /* TODO: Implement me */
+            isInitDataEqual = function(/*initData1, initData2*/) {
+                return false;
+            },
 
-            PSSHBox.set(playreadySystemID, byteCursor);
-            byteCursor += playreadySystemID.length;
+            cdmData = function (cdmData) {
+                if (!String.isNullOrEmpty(cdmData)) {
+                    _protectionData.licenseRequest[this.keysTypeString].cdmData = cdmData;
+                }
 
-            PSSHData.setUint32(byteCursor, PROSize);
-            byteCursor += 0x4;
+                var _cdmData = _protectionData.licenseRequest[this.keysTypeString].cdmData;
+                if (null === _cdmData) {
+                    return null;
+                }
 
-            PSSHBox.set(uint8arraydecodedPROHeader, byteCursor);
-            byteCursor += PROSize;
+                var cdmDataArray = [], charCode;
+                cdmDataArray.push(239);
+                cdmDataArray.push(187);
+                cdmDataArray.push(191);
+                for(var i = 0, j = _cdmData.length; i < j; ++i){
+                    charCode = _cdmData.charCodeAt(i);
+                    cdmDataArray.push((charCode & 0xFF00) >> 8);
+                    cdmDataArray.push(charCode & 0xFF);
+                }
 
-            return PSSHBox.buffer;
-        },
+                return new Uint8Array(cdmDataArray);
+            },
+            laUrl = function (laUrl) {
+                if (!String.isNullOrEmpty(laUrl)) {
+                    _protectionData.licenseRequest.laUrl = laUrl;
+                }
 
-        /* TODO: Implement me */
-        isInitDataEqual = function(/*initData1, initData2*/) {
-            return false;
-        };
+                return _protectionData.licenseRequest.laUrl;
+            },
+            headers = function (headers) {
+                if ('object' === typeof (headers)) {
+                    _protectionData.licenseRequest.headers = headers;
+                }
+
+                return _protectionData.licenseRequest.headers;
+            };
 
     return {
 
-        schemeIdURI: "urn:uuid:" + keySystemUUID,
+        schemeIdURI: 'urn:uuid:' + keySystemUUID,
         systemString: keySystemStr,
         uuid: keySystemUUID,
         notify: undefined,
@@ -198,19 +233,24 @@ MediaPlayer.dependencies.protection.KeySystem_PlayReady = function() {
          * @param protectionData {ProtectionData} data providing overrides for
          * default or CDM-provided values
          */
-        init: function(protectionData) {
-            protData = protectionData;
+        init: function (protectionData) {
+            if ('undefined' !== typeof (protectionData) && null !== protectionData) {
+                _protectionData.licenseRequest = protectionData.licenseRequest || _protectionData.licenseRequest;
+            }
         },
 
-        doLicenseRequest: requestLicense,
+        requestLicense: requestLicense,
 
         getInitData: parseInitDataFromContentProtection,
 
-        initDataEquals: isInitDataEqual
+        initDataEquals: isInitDataEqual,
+
+        cdmData: cdmData,
+        laUrl: laUrl,
+        headers: headers
     };
 };
 
 MediaPlayer.dependencies.protection.KeySystem_PlayReady.prototype = {
     constructor: MediaPlayer.dependencies.protection.KeySystem_PlayReady
 };
-
