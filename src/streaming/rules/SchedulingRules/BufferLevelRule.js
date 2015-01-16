@@ -70,7 +70,9 @@ MediaPlayer.rules.BufferLevelRule = function () {
 
 
             if (bufferMax === MediaPlayer.dependencies.BufferController.BUFFER_SIZE_MIN) {
-                requiredBufferLength = minBufferTarget;
+                //requiredBufferLength = minBufferTarget;
+                requiredBufferLength = 30;
+
             } else if (bufferMax === MediaPlayer.dependencies.BufferController.BUFFER_SIZE_INFINITY) {
                 requiredBufferLength = duration;
             } else if (bufferMax === MediaPlayer.dependencies.BufferController.BUFFER_SIZE_REQUIRED) {
