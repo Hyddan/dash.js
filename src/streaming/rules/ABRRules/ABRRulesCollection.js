@@ -31,28 +31,30 @@
 MediaPlayer.rules.ABRRulesCollection = function () {
     "use strict";
 
-    var qualitySwitchRules = [];
-
+    var qualitySwitchingRules = [];
+    
     return {
+        arkenaSwitchingRule: undefined,
+        bufferOccupancyRule:undefined,
         insufficientBufferRule: undefined,
         limitSwitchesRule: undefined,
-        bufferOccupancyRule:undefined,
         throughputRule:undefined,
 
         getRules: function (type) {
             switch (type) {
                 case MediaPlayer.rules.ABRRulesCollection.prototype.QUALITY_SWITCH_RULES:
-                    return qualitySwitchRules;
+                    return qualitySwitchingRules;
                 default:
                     return null;
             }
         },
 
         setup: function () {
-            qualitySwitchRules.push(this.insufficientBufferRule);
-            qualitySwitchRules.push(this.throughputRule);
-            qualitySwitchRules.push(this.bufferOccupancyRule); // rule in progress needs more work.
-            qualitySwitchRules.push(this.limitSwitchesRule);
+            qualitySwitchingRules.push(this.arkenaSwitchingRule);
+            // qualitySwitchingRules.push(this.bufferOccupancyRule); // rule in progress needs more work.
+            // qualitySwitchingRules.push(this.insufficientBufferRule);
+            // qualitySwitchingRules.push(this.limitSwitchesRule);
+            // qualitySwitchingRules.push(this.throughputRule);
         }
     };
 };

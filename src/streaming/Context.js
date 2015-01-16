@@ -48,6 +48,15 @@ MediaPlayer.di.Context = function () {
             debug.log('No supported version of EME detected on this user agent!');
             debug.log('Attempts to play encrypted content will fail!');
         }
+    },
+    mapQualitySwitchingRules = function () {
+        this.system.mapClass('insufficientBufferRule', MediaPlayer.rules.InsufficientBufferRule);
+        this.system.mapClass('limitSwitchesRule', MediaPlayer.rules.LimitSwitchesRule);
+        this.system.mapClass('bufferOccupancyRule', MediaPlayer.rules.BufferOccupancyRule);
+        this.system.mapClass('throughputRule', MediaPlayer.rules.ThroughputRule);
+        this.system.mapClass('arkenaSwitchingRule', MediaPlayer.rules.ArkenaSwitchingRule);
+
+        this.system.mapSingleton('abrRulesCollection', MediaPlayer.rules.ABRRulesCollection);
     };
 
     return {
@@ -89,12 +98,8 @@ MediaPlayer.di.Context = function () {
             this.system.mapSingleton('liveEdgeFinder', MediaPlayer.dependencies.LiveEdgeFinder);
 
             this.system.mapClass('metrics', MediaPlayer.models.MetricsList);
-            this.system.mapClass('insufficientBufferRule', MediaPlayer.rules.InsufficientBufferRule);
-            this.system.mapClass('limitSwitchesRule', MediaPlayer.rules.LimitSwitchesRule);
-            this.system.mapClass('bufferOccupancyRule', MediaPlayer.rules.BufferOccupancyRule);
-            this.system.mapClass('throughputRule', MediaPlayer.rules.ThroughputRule);
-            this.system.mapClass('arkenaSwitchingMetric',MediaPlayer.rules.ArkenaSwitchingMetric);
-            this.system.mapSingleton('abrRulesCollection', MediaPlayer.rules.ABRRulesCollection);
+            
+            mapQualitySwitchingRules.call(this);
 
             this.system.mapSingleton('rulesController', MediaPlayer.rules.RulesController);
             this.system.mapClass('bufferLevelRule', MediaPlayer.rules.BufferLevelRule);
