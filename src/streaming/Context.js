@@ -74,6 +74,7 @@ MediaPlayer.di.Context = function () {
             this.system.mapClass('limitSwitchesRule', MediaPlayer.rules.LimitSwitchesRule);
             this.system.mapClass('bufferOccupancyRule', MediaPlayer.rules.BufferOccupancyRule);
             this.system.mapClass('throughputRule', MediaPlayer.rules.ThroughputRule);
+            this.system.mapClass('arkenaSwitchingMetric',MediaPlayer.rules.ArkenaSwitchingMetric);
             this.system.mapSingleton('abrRulesCollection', MediaPlayer.rules.ABRRulesCollection);
 
             this.system.mapSingleton('rulesController', MediaPlayer.rules.RulesController);
