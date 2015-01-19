@@ -245,13 +245,14 @@ MediaPlayer.rules.ArkenaSwitchingRule = function () {
             if (null !== lastRequest && null !== lastRequest.range && null !== metrics) {
 				var repSwitch = self.metricsExt.getCurrentRepresentationSwitch(metrics),
 					bufferLevel = self.metricsExt.getCurrentBufferLevel(metrics);
-				currentIndex = self.metricsExt.getIndexForRepresentation(repSwitch.to);
+				
+				currentIndex = 'video' === mediaInfo.type ? self.metricsExt.getIndexForRepresentation(repSwitch.to) : currentIndex;
 
 				////////////////////////////////////////////////////
 				// Check if switch is complete
 				////////////////////////////////////////////////////
 				if (switchInProgress === true ) {
-					if (currentIndex === changeToIndex) {
+					if (parseInt(currentIndex, 10) === parseInt(changeToIndex, 10)) {
 						console.debug("## Switch to ", currentIndex ," Complete!!");
 						console.debug("##########################");
 						switchInProgress = false;
@@ -261,7 +262,7 @@ MediaPlayer.rules.ArkenaSwitchingRule = function () {
 					}
 				} else {
 					if (mediaInfo.type === "video") {
-						console.debug(" Buffer: ", currentBufferLevel.toFixed(0)," - runcounter ", runcounter," - drainingPeriod ",drainingPeriod," - currentIndex ", currentIndex, "Bandwidth - ", prevKbpsReading.toFixed(0)+" KB/s");
+						console.debug("Buffer: ", currentBufferLevel.toFixed(0)," - runcounter ", runcounter," - drainingPeriod ",drainingPeriod," - currentIndex ", currentIndex, "Bandwidth - ", prevKbpsReading.toFixed(0)+" KB/s");
 					}
 				}
 
