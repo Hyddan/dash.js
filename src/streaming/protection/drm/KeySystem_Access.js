@@ -36,4 +36,3 @@ MediaPlayer.dependencies.protection.KeySystem_Access = function() {
 MediaPlayer.dependencies.protection.KeySystem_Access.prototype = {
     constructor: MediaPlayer.dependencies.protection.KeySystem_Access
 };
-
