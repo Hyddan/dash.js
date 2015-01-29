@@ -31,11 +31,16 @@
 MediaPlayer.di.Context = function () {
     'use strict';
 
-    var mapProtectionModel = function() {
+    var mapKeySystems = function() {
+		this.system.mapSingleton('ksPlayReady', MediaPlayer.dependencies.protection.KeySystem_PlayReady);
+		this.system.mapSingleton('ksWidevine', MediaPlayer.dependencies.protection.KeySystem_Widevine);
+		this.system.mapSingleton('ksClearKey', MediaPlayer.dependencies.protection.KeySystem_ClearKey);
+	},
+    mapProtectionModel = function() {
         var videoElement = document.createElement('video');
 
         // Detect EME APIs
-         if (MediaPlayer.models.ProtectionModel_01b.detect(videoElement)) {
+        if (MediaPlayer.models.ProtectionModel_01b.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_01b);
         } else if (MediaPlayer.models.ProtectionModel_10Dec2014.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_10Dec2014);
@@ -50,10 +55,10 @@ MediaPlayer.di.Context = function () {
         }
     },
     mapQualitySwitchingRules = function () {
-        this.system.mapClass('insufficientBufferRule', MediaPlayer.rules.InsufficientBufferRule);
-        this.system.mapClass('bufferOccupancyRule', MediaPlayer.rules.BufferOccupancyRule);
-        this.system.mapClass('throughputRule', MediaPlayer.rules.ThroughputRule);
         this.system.mapClass('arkenaSwitchingRule', MediaPlayer.rules.ArkenaSwitchingRule);
+        this.system.mapClass('bufferOccupancyRule', MediaPlayer.rules.BufferOccupancyRule);
+        this.system.mapClass('insufficientBufferRule', MediaPlayer.rules.InsufficientBufferRule);
+        this.system.mapClass('throughputRule', MediaPlayer.rules.ThroughputRule);
 
         this.system.mapSingleton('abrRulesCollection', MediaPlayer.rules.ABRRulesCollection);
     };
@@ -78,10 +83,6 @@ MediaPlayer.di.Context = function () {
             this.system.mapSingleton('metricsModel', MediaPlayer.models.MetricsModel);
             this.system.mapSingleton('uriQueryFragModel', MediaPlayer.models.URIQueryAndFragmentModel);
 
-            this.system.mapSingleton('ksPlayReady', MediaPlayer.dependencies.protection.KeySystem_PlayReady);
-            this.system.mapSingleton('ksWidevine', MediaPlayer.dependencies.protection.KeySystem_Widevine);
-            this.system.mapSingleton('ksClearKey', MediaPlayer.dependencies.protection.KeySystem_ClearKey);
-
             this.system.mapSingleton('requestModifierExt', MediaPlayer.dependencies.RequestModifierExtensions);
             this.system.mapSingleton('textSourceBuffer', MediaPlayer.dependencies.TextSourceBuffer);
             this.system.mapSingleton('mediaSourceExt', MediaPlayer.dependencies.MediaSourceExtensions);
@@ -93,6 +94,7 @@ MediaPlayer.di.Context = function () {
             this.system.mapClass('protectionController', MediaPlayer.dependencies.ProtectionController);
             this.system.mapClass('playbackController', MediaPlayer.dependencies.PlaybackController);
 
+            mapKeySystems.call(this);
             mapProtectionModel.call(this); // Determines EME API support and version
 
             this.system.mapSingleton('liveEdgeFinder', MediaPlayer.dependencies.LiveEdgeFinder);
