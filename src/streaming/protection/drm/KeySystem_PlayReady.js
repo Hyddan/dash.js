@@ -183,10 +183,10 @@ MediaPlayer.dependencies.protection.KeySystem_PlayReady = function() {
 
             cdmData = function (cdmData) {
                 if (!String.isNullOrEmpty(cdmData)) {
-                    _protectionData.licenseRequest[this.keysTypeString].cdmData = cdmData;
+                    _protectionData.licenseRequest.cdmData = cdmData;
                 }
 
-                var _cdmData = _protectionData.licenseRequest[this.keysTypeString].cdmData;
+                var _cdmData = _protectionData.licenseRequest.cdmData;
                 if (null === _cdmData) {
                     return null;
                 }
@@ -219,7 +219,6 @@ MediaPlayer.dependencies.protection.KeySystem_PlayReady = function() {
             };
 
     return {
-
         schemeIdURI: 'urn:uuid:' + keySystemUUID,
         systemString: keySystemStr,
         uuid: keySystemUUID,

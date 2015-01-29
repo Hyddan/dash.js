@@ -92,7 +92,7 @@ MediaPlayer.dependencies.protection.KeySystem_Widevine = function() {
                         xhr.setRequestHeader(key, headers[key]);
                     }
 
-                    xhr.send(event.message);
+                    xhr.send(keyMessageEvent.message);
                 }
             },
 
@@ -129,7 +129,6 @@ MediaPlayer.dependencies.protection.KeySystem_Widevine = function() {
             };
 
     return {
-
         schemeIdURI: 'urn:uuid:' + keySystemUUID,
         systemString: keySystemStr,
         uuid: keySystemUUID,

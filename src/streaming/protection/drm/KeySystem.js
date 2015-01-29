@@ -30,7 +30,6 @@
  */
 
 MediaPlayer.dependencies.protection.KeySystem = {
-
     /**
      * Key system name string (e.g. 'org.w3.clearkey')
      *
@@ -91,4 +90,3 @@ MediaPlayer.dependencies.protection.KeySystem = {
         ENAME_LICENSE_REQUEST_COMPLETE: 'licenseRequestComplete'
     }
 };
-

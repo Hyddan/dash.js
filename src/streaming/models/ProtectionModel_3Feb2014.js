@@ -30,7 +30,6 @@
  */
 
 MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
-
     var videoElement = null,
         mediaKeys = null,
 
@@ -48,7 +47,6 @@ MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
             return {
                 handleEvent: function(event) {
                     switch (event.type) {
-
                         case api.needkey:
                             self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_NEED_KEY,
                                 new MediaPlayer.vo.protection.NeedKey(event.initData));
@@ -153,7 +151,6 @@ MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
         },
 
         createKeySession: function(initData, contentType/*, initDataType*/) {
-
             if (!this.keySystem || !mediaKeys) {
                 throw new Error("Can not create sessions until you have selected a key system");
             }
