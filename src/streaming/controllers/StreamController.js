@@ -401,6 +401,10 @@
         getActiveStreamInfo: function() {
             return activeStream ? activeStream.getStreamInfo() : null;
         },
+		
+        getActiveStream: function() {
+            return activeStream;
+        },
 
         /**
          * @param id
