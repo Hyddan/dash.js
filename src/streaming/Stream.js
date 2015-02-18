@@ -238,6 +238,32 @@ MediaPlayer.dependencies.Stream = function () {
             manifest = null;
         },
 
+        changeLangForAudio = function (lang) {
+			var self = this,
+					type = 'audio',
+					processor = streamProcessors.filter(function (item) { return type === item.getType(); })[0],
+					bufferController = processor.getBufferController(),
+					buffer = bufferController.getBuffer(),
+					mediaInfo = self.adapter.getMediaInfoForType(manifest, streamInfo, type, lang),
+					processorIndex = streamProcessors.indexOf(processor);;
+
+			mediaInfos[type] = mediaInfo;
+			mediaInfo.contentProtection;
+			
+			if (1 < buffer.buffered.length) {
+			    buffer.remove(buffer.buffered.start(0), buffer.buffered.end(buffer.buffered.length - 1));
+			}
+			processor.reset(true);
+			processor = self.system.getObject("streamProcessor");
+			streamProcessors[processorIndex] = processor;
+			processor.initialize(type, buffer, self.videoModel, self.fragmentController, self.playbackController, mediaSource, self, eventController);
+			processor.setMediaInfo(mediaInfo);
+			self.abrController.updateTopQualityIndex(mediaInfo);
+			self.adapter.updateData(processor);
+			processor.stop();
+			processor.start();
+		},
+
         initializeMediaForType = function(type, manifest) {
             var self = this,
                 mimeType = null,
@@ -699,6 +725,7 @@ MediaPlayer.dependencies.Stream = function () {
         },
 
         updateData: updateData,
+		changeLangForAudio: changeLangForAudio,
         play: play,
         seek: seek,
         pause: pause
