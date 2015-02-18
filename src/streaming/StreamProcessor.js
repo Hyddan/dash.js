@@ -138,6 +138,10 @@ MediaPlayer.dependencies.StreamProcessor = function () {
             return this.trackController.isUpdating();
         },
 
+        getBufferController: function () {
+            return this.bufferController;
+        },
+
         getType: function() {
             return type;
         },
