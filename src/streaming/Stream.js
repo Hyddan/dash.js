@@ -36,6 +36,7 @@ MediaPlayer.dependencies.Stream = function () {
         mediaInfos = {},
         streamProcessors = [],
         autoPlay = true,
+        language = null,
         initialized = false,
         canPlay = false,
         errored = false,
@@ -246,33 +247,32 @@ MediaPlayer.dependencies.Stream = function () {
             mediaSource = null;
         },
 
-        changeLangForAudio = function (lang) {
-			var self = this,
-					type = 'audio',
-					processor = streamProcessors.filter(function (item) { return type === item.getType(); })[0],
-					bufferController = processor.getBufferController(),
-					buffer = bufferController.getBuffer(),
-					mediaInfo = self.adapter.getMediaInfoForType(manifest, streamInfo, type, lang),
-					processorIndex = streamProcessors.indexOf(processor);;
+        switchLanguage = function (lang) {
+            var self = this,
+                    type = 'audio',
+                    processor = streamProcessors.filter(function (item) { return type === item.getType(); })[0],
+                    bufferController = processor.getBufferController(),
+                    buffer = bufferController.getBuffer(),
+                    mediaInfo = self.adapter.getMediaInfoForType(manifest, streamInfo, type, language = lang),
+                    processorIndex = streamProcessors.indexOf(processor);
 
-			mediaInfos[type] = mediaInfo;
-			mediaInfo.contentProtection;
-			
-			if (1 < buffer.buffered.length) {
-			    buffer.remove(buffer.buffered.start(0), buffer.buffered.end(buffer.buffered.length - 1));
-			}
-			processor.reset(true);
-			processor = self.system.getObject("streamProcessor");
-			streamProcessors[processorIndex] = processor;
-			processor.initialize(type, buffer, self.videoModel, self.fragmentController, self.playbackController, mediaSource, self, eventController);
-			processor.setMediaInfo(mediaInfo);
-			self.abrController.updateTopQualityIndex(mediaInfo);
-			self.adapter.updateData(processor);
-			processor.stop();
-			processor.start();
-		},
+            mediaInfos[type] = mediaInfo;
 
-        initializeMediaForType = function(type) {
+            if (1 < buffer.buffered.length) {
+                buffer.remove(buffer.buffered.start(0), buffer.buffered.end(buffer.buffered.length - 1));
+            }
+            processor.reset(true);
+            processor = self.system.getObject("streamProcessor");
+            streamProcessors[processorIndex] = processor;
+            processor.initialize(type, buffer, self.videoModel, self.fragmentController, self.playbackController, mediaSource, self, eventController);
+            processor.setMediaInfo(mediaInfo);
+            self.abrController.updateTopQualityIndex(mediaInfo);
+            self.adapter.updateData(processor);
+            processor.stop();
+            processor.start();
+        },
+
+        initializeMediaForType = function(type, lang) {
             var self = this,
                 mimeType = null,
                 codec,
@@ -291,7 +291,7 @@ MediaPlayer.dependencies.Stream = function () {
                     return buffer;
                 },
                 processor,
-                mediaInfo = self.adapter.getMediaInfoForType(manifest, streamInfo, type);
+                mediaInfo = self.adapter.getMediaInfoForType(manifest, streamInfo, type, lang);
 
             if (type === "text") {
                 getCodecOrMimeType = function(mediaInfo) {
@@ -369,7 +369,7 @@ MediaPlayer.dependencies.Stream = function () {
             //self.log("Gathering information for buffers. (1)");
 
             initializeMediaForType.call(self, "video");
-            initializeMediaForType.call(self, "audio");
+            initializeMediaForType.call(self, "audio", language);
             initializeMediaForType.call(self, "text");
             initializeMediaForType.call(self, "fragmentedText");
 
@@ -682,6 +682,10 @@ MediaPlayer.dependencies.Stream = function () {
             return autoPlay;
         },
 
+        setLanguage: function (value) {
+            language = value;
+        },
+
         reset: function () {
             pause.call(this);
 
@@ -775,7 +779,7 @@ MediaPlayer.dependencies.Stream = function () {
         },
 
         updateData: updateData,
-		changeLangForAudio: changeLangForAudio,
+        switchLanguage: switchLanguage,
         play: play,
         seek: seek,
         pause: pause
