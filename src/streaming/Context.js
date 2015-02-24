@@ -38,7 +38,6 @@ MediaPlayer.di.Context = function () {
         }
     },
     mapQualitySwitchingRules = function () {
-        this.system.mapClass('arkenaSwitchingRule', MediaPlayer.rules.ArkenaSwitchingRule);
         this.system.mapClass('downloadRatioRule', MediaPlayer.rules.DownloadRatioRule);
         this.system.mapClass('bufferOccupancyRule', MediaPlayer.rules.BufferOccupancyRule);
         this.system.mapClass('insufficientBufferRule', MediaPlayer.rules.InsufficientBufferRule);

@@ -17,7 +17,6 @@ MediaPlayer.rules.ABRRulesCollection = function () {
     var qualitySwitchingRules = [];
     
     return {
-        arkenaSwitchingRule: undefined,
         bufferOccupancyRule:undefined,
         downloadRatioRule: undefined,
         insufficientBufferRule: undefined,
@@ -34,12 +33,11 @@ MediaPlayer.rules.ABRRulesCollection = function () {
         },
 
         setup: function () {
-            qualitySwitchingRules.push(this.arkenaSwitchingRule);
-            // qualitySwitchingRules.push(this.bufferOccupancyRule); // rule in progress needs more work.
+            qualitySwitchingRules.push(this.bufferOccupancyRule); // rule in progress needs more work.
             // qualitySwitchingRules.push(this.downloadRatioRule); //may add back
-            // qualitySwitchingRules.push(this.insufficientBufferRule);
-            // qualitySwitchingRules.push(this.limitSwitchesRule);
-            // qualitySwitchingRules.push(this.throughputRule);
+            qualitySwitchingRules.push(this.insufficientBufferRule);
+            qualitySwitchingRules.push(this.limitSwitchesRule);
+            qualitySwitchingRules.push(this.throughputRule);
         }
     };
 };
