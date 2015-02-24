@@ -294,6 +294,24 @@ window.Hyddan = (function (Hyddan) {
             
             return _protection;
         };
+        Player.rules = function (rules) {
+            var _qualitySwitchingRulesType = MediaPlayer.rules.ABRRulesCollection.prototype.QUALITY_SWITCH_RULES,
+					_qualitySwitchingRules = {};
+            
+            if (Hyddan.Utils.notNullOrEmpty(rules)) {
+				_qualitySwitchingRules[_qualitySwitchingRulesType] = [].concat(rules);
+                if (Array.isArray(rules)) {
+                    Player.DashJs.rulesController.setRules(Player.DashJs.rulesController.ABR_RULE, _qualitySwitchingRules);
+                }
+                else {
+                    Player.DashJs.rulesController.addRules(Player.DashJs.rulesController.ABR_RULE, _qualitySwitchingRules);
+                }
+                
+                return Player;
+            }
+            
+            return Player.DashJs.abrController.abrRulesCollection.getRules(_qualitySwitchingRulesType);
+        };
         Player.source = function (source) {
             if (Hyddan.Utils.notNullOrEmpty(source)) {
                 _reset();

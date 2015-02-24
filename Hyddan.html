@@ -158,7 +158,7 @@
                             .configure({
                                 autoPlay: true,
                                 debug: {
-                                    logToConsole: true
+                                    logToConsole: false
                                 },
                                 object: document.querySelector('.dash-video-player video'),
                                 protection: {
@@ -187,7 +187,11 @@
                                 source: Hyddan.Utils.getQueryStringParameter('url') || 'http://localhost/Playground/Dash/Manifest.mpd'
                             })
                             .volume(0.1)
-                            .play();
+                            .play()
+							.rules([
+								new MediaPlayer.rules.ArkenaSwitchingRule()
+							]);
+			console.log(Hyddan.Player.rules());
         };
     </script>
     <body onload="init()">
