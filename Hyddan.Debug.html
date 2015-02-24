@@ -44,7 +44,10 @@
                                 source: Hyddan.Utils.getQueryStringParameter('url') || 'http://localhost/Playground/Dash/Manifest.mpd'
                             })
                             .volume(0.1)
-                            .play();
+                            .play()
+							.rules([
+								new MediaPlayer.rules.ArkenaSwitchingRule()
+							]);
         };
     </script>
     <body onload="init()">
