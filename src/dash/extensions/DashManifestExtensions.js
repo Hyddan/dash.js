@@ -170,13 +170,13 @@ Dash.dependencies.DashManifestExtensions.prototype = {
         return adaptations;
     },
 
-    getAdaptationForType: function (manifest, periodIndex, type, lang) {
+    getAdaptationForType: function (manifest, periodIndex, type, language) {
         "use strict";
         var i,
             len,
             adaptations,
             self = this,
-			idx = 0;
+            idx = 0;
 
         adaptations = this.getAdaptationsForType(manifest, periodIndex, type);
 
@@ -184,7 +184,7 @@ Dash.dependencies.DashManifestExtensions.prototype = {
 
         for (i = 0, len = adaptations.length; i < len; i += 1) {
             if (self.getIsMain(adaptations[i])) return adaptations[i];
-			if (lang && adaptations[i].lang && lang === adaptations[i].lang) idx = i;
+            if (language && adaptations[i].lang && language === adaptations[i].lang) idx = i;
         }
 
         return adaptations[idx];
