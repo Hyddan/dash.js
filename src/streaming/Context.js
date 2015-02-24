@@ -25,6 +25,8 @@ MediaPlayer.di.Context = function () {
         // Detect EME APIs
         if (MediaPlayer.models.ProtectionModel_01b.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_01b);
+        } else if (MediaPlayer.models.ProtectionModel_21Jan2015.detect(videoElement)) {
+            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_21Jan2015);
         } else if (MediaPlayer.models.ProtectionModel_10Dec2014.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_10Dec2014);
         } else if (MediaPlayer.models.ProtectionModel_28Aug2014.detect(videoElement)) {

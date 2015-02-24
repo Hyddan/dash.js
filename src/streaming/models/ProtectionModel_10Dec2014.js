@@ -45,7 +45,7 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
                         switch (event.type) {
                             case api.encrypted:
                                 self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_NEED_KEY,
-                                    new MediaPlayer.vo.protection.NeedKey(event.initData));
+                                    new MediaPlayer.vo.protection.NeedKey(event.initData, 'cenc'));
                                 break;
                         }
                     }
@@ -66,9 +66,22 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
                                         new MediaPlayer.vo.protection.KeyMessage(this, event.message, event.destinationURL));
                                 break;
                         }
-                    }
+                    },
+					
+					getSessionID: function() {
+						return this.session.sessionId;
+					}
                 };
-            };
+            },
+
+			removeSession = function (sessionToken) {
+				for (var i = 0; i < sessions.length; i++) {
+					if (sessions[i] === sessionToken) {
+						sessions.splice(i, 1);
+						break;
+					}
+				}
+			};
 
     return {
         system: undefined,
@@ -88,24 +101,57 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
 
         teardown: function() {
             if (videoElement) {
-                videoElement.removeEventListener(api.needkey, eventHandler);
+                videoElement.removeEventListener(api.encrypted, eventHandler);
             }
             for (var i = 0; i < sessions.length; i++) {
-                this.closeKeySession(sessions[i]);
+                self.closeKeySession(sessions[i]);
             }
         },
 
-        isSupported: function(keySystem, contentType) {
+        requestKeySystemAccess: function(ksConfigurations) {
             //jshint unused:false
-            // Needs to be rewritten to emit an event as this version of the spec uses promises to connect to key system
-            // navigator.requestMediaKeySystemAccess(keySystem).then(function () { isSupported === true; }).catch(function () { isSupported === false; });
+			var element = videoElement || document.createElement('video');
 
-            return 'com.widevine.alpha' === keySystem.systemString;
+            var found = false;
+            for (var ksIdx = 0; ksIdx < ksConfigurations.length; ksIdx++) {
+                var keySystem = ksConfigurations[ksIdx].ks;
+                var configs = ksConfigurations[ksIdx].configs;
+                var supportedVideo = null;
+
+                for (var configIdx = 0; configIdx < configs.length; configIdx++) {
+                    var videos = configs[configIdx].videoCapabilities;
+
+                    if (videos && videos.length !== 0) {
+                        supportedVideo = []; // Indicates that we have a requested video config
+                        for (var videoIdx = 0; videoIdx < videos.length; videoIdx++) {
+                            if (element.canPlayType(videos[videoIdx].contentType, keySystem.systemString) !== "") {
+                                supportedVideo.push(videos[videoIdx]);
+                            }
+                        }
+                    }
+
+                    if (!supportedVideo ||
+                            (supportedVideo && supportedVideo.length === 0) ||
+							'com.widevine.alpha' !== keySystem.systemString) {
+                        continue;
+                    }
+
+                    found = true;
+                    self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SYSTEM_ACCESS_COMPLETE,
+                            new MediaPlayer.vo.protection.KeySystemAccess(keySystem, new MediaPlayer.vo.protection.KeySystemConfiguration(null, supportedVideo)));
+                    break;
+                }
+            }
+            if (!found) {
+                self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SYSTEM_ACCESS_COMPLETE,
+                        null, "Key system access denied! -- No valid audio/video content configurations detected!");
+            }
         },
 
-        selectKeySystem: function(keySystem) {
-            this.keySystem = keySystem;
-            keySystemAccessPromise = navigator.requestMediaKeySystemAccess(keySystem.systemString);
+        selectKeySystem: function(keySystemAccess) {
+            self.keySystem = keySystemAccess.keySystem;
+            keySystemAccessPromise = navigator.requestMediaKeySystemAccess(self.keySystem.systemString);
+			self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SYSTEM_SELECTED);
         },
 
         setMediaElement: function(mediaElement) {
@@ -119,7 +165,7 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
             }
         },
 
-        setMediaKeys: function(mediaKeys, initData) {
+        setMediaKeys: function (mediaKeys, initData) {
             var session = null,
                     sessionToken = null;
 
@@ -129,26 +175,24 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
                         session = mediaKeys.createSession();
                         sessionToken = createSessionToken.call(this, session, initData);
 
-                        session.addEventListener(api.error, sessionToken);
                         session.addEventListener(api.message, sessionToken);
-                        session.addEventListener(api.ready, sessionToken);
-                        session.addEventListener(api.close, sessionToken);
 
                         sessions.push(sessionToken);
                         
                         session[api.generateRequest]('cenc', initData).then(function () {
                             sessionToken.sessionID = session.sessionId;
-                        }).catch(function (){
-                            self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_ERROR,
+							self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SESSION_CREATED, sessionToken);
+                        }).catch(function () {
+							self.closeKeySession(sessionToken);
+                            self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SESSION_CREATED, null,
                                     new MediaPlayer.vo.protection.KeyError(sessionToken, 'Failed to create keySession'));
                         });
                     }
-                }).catch(function () {
                 });
             }
         },
 
-        createKeySession: function(initData, contentType, initDataType, hasDelayed) {
+        createKeySession: function (initData, contentType, initDataType, hasDelayed) {
             //jshint unused:false
             if (!this.keySystem || (!mediaKeys && !keySystemAccessPromise)) {
                 if (hasDelayed) {
@@ -178,26 +222,20 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
             }
         },
 
-        updateKeySession: function(sessionToken, message) {
+        updateKeySession: function (sessionToken, message) {
             sessionToken.session[api.update](message);
         },
 
-        closeKeySession: function(sessionToken) {
+        closeKeySession: function (sessionToken) {
             var session = sessionToken.session;
 
-            session.removeEventListener(api.error, sessionToken);
             session.removeEventListener(api.message, sessionToken);
-            session.removeEventListener(api.ready, sessionToken);
-            session.removeEventListener(api.close, sessionToken);
 
-            for (var i = 0; i < sessions.length; i++) {
-                if (sessions[i] === sessionToken) {
-                    sessions.splice(i,1);
-                    break;
-                }
-            }
+			removeSession(session);
 
             session[api.release]();
+			
+			self.notify(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SESSION_CLOSED, sessionToken.getSessionID());
         }
     };
 };
