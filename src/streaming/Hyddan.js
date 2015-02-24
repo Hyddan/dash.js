@@ -129,6 +129,7 @@ window.Hyddan = (function (Hyddan) {
                 _di = null,
                 _element = null,
                 _isPlaying = false,
+                _language = null,
                 _logToConsole = false,
                 _protection = null,
                 _source = null,
@@ -180,6 +181,7 @@ window.Hyddan = (function (Hyddan) {
             Events.onConfigure = Events.onConfigure || function (configuration) { };
             Events.onData = Events.onData || function (data) { };
             Events.onDestroy = Events.onDestroy || function () { };
+            Events.onLanguage = Events.onLanguage || function (language) { };
             Events.onObject = Events.onObject || function (element) { };
             Events.onPause = Events.onPause || function () { };
             Events.onPlay = Events.onPlay || function () { };
@@ -210,6 +212,7 @@ window.Hyddan = (function (Hyddan) {
                 debug: {
                     logToConsole: false
                 },
+                language: null,
                 object: null,
                 protection: null,
                 source: null
@@ -219,6 +222,7 @@ window.Hyddan = (function (Hyddan) {
             Player.Events.onConfigure(data);
             
             _autoPlay = data.autoPlay;
+            _language = data.language;
             _logToConsole = (data.debug || {}).logToConsole || false;
             
             Player.object(data.object);
@@ -244,6 +248,16 @@ window.Hyddan = (function (Hyddan) {
             Player.Events.onInitialize(_context);
             
             return Player;
+        };
+        Player.language = function (language) {
+            if (Hyddan.Utils.notNullOrEmpty(language)) {
+                Player.DashJs.streamController.getActiveStream().switchLanguage(_language = language);
+                Player.Events.onLanguage(_language);
+
+                return Player;
+            }
+
+            return _language;
         };
         Player.object = function (element) {
             if (Hyddan.Utils.notNullOrEmpty(element)) {
@@ -296,10 +310,10 @@ window.Hyddan = (function (Hyddan) {
         };
         Player.rules = function (rules) {
             var _qualitySwitchingRulesType = MediaPlayer.rules.ABRRulesCollection.prototype.QUALITY_SWITCH_RULES,
-					_qualitySwitchingRules = {};
+                    _qualitySwitchingRules = {};
             
             if (Hyddan.Utils.notNullOrEmpty(rules)) {
-				_qualitySwitchingRules[_qualitySwitchingRulesType] = [].concat(rules);
+                _qualitySwitchingRules[_qualitySwitchingRulesType] = [].concat(rules);
                 if (Array.isArray(rules)) {
                     Player.DashJs.rulesController.setRules(Player.DashJs.rulesController.ABR_RULE, _qualitySwitchingRules);
                 }
@@ -329,6 +343,7 @@ window.Hyddan = (function (Hyddan) {
                     Player.DashJs.streamController.initialize();
                     Player.DashJs.streamController.setVideoModel(Player.DashJs.videoModel);
                     Player.DashJs.streamController.setAutoPlay(_autoPlay);
+                    Player.DashJs.streamController.setLanguage(_language);
                     Player.DashJs.streamController.setProtectionData(_protection);
                     Player.DashJs.streamController.load(_source);
                     

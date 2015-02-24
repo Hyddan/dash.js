@@ -42,6 +42,7 @@
         STREAM_BUFFER_END_THRESHOLD = 6,
         STREAM_END_THRESHOLD = 0.2,
         autoPlay = true,
+        language = null,
         isStreamSwitchingInProgress = false,
 
         play = function () {
@@ -293,6 +294,7 @@
                         playbackCtrl.subscribe(MediaPlayer.dependencies.PlaybackController.eventList.ENAME_CAN_PLAY, stream);
                         stream.initProtection(manifest);
                         stream.setAutoPlay(autoPlay);
+                        stream.setLanguage(language);
                         stream.load(manifest);
                         stream.subscribe(MediaPlayer.dependencies.Stream.eventList.ENAME_STREAM_UPDATED, self);
                         streams.push(stream);
@@ -386,6 +388,10 @@
             return autoPlay;
         },
 
+        setLanguage: function (value) {
+            language = value;
+        },
+
         setProtectionData: function (value) {
             this.protectionExt.init(value);
         },
@@ -401,7 +407,7 @@
         getActiveStreamInfo: function() {
             return activeStream ? activeStream.getStreamInfo() : null;
         },
-		
+
         getActiveStream: function() {
             return activeStream;
         },
