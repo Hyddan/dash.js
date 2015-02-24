@@ -128,10 +128,10 @@ Dash.dependencies.DashAdapter = function () {
             return manifestInfo;
         },
 
-        getMediaInfoForType = function(manifest, streamInfo, type, lang) {
+        getMediaInfoForType = function(manifest, streamInfo, type, language) {
             var periodInfo = getPeriodForStreamInfo(streamInfo),
                 periodId = periodInfo.id,
-                data = this.manifestExt.getAdaptationForType(manifest, streamInfo.index, type, lang),
+                data = this.manifestExt.getAdaptationForType(manifest, streamInfo.index, type, language),
                 idx;
 
             if (!data) return null;
