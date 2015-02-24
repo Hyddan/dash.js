@@ -250,6 +250,7 @@ MediaPlayer.dependencies.Stream = function () {
         switchLanguage = function (lang) {
             var self = this,
                     type = 'audio',
+					currentTime = self.videoModel.getCurrentTime() - 0.1,
                     processor = streamProcessors.filter(function (item) { return type === item.getType(); })[0],
                     bufferController = processor.getBufferController(),
                     buffer = bufferController.getBuffer(),
@@ -270,6 +271,7 @@ MediaPlayer.dependencies.Stream = function () {
             self.adapter.updateData(processor);
             processor.stop();
             processor.start();
+			self.videoModel.setCurrentTime(currentTime);
         },
 
         initializeMediaForType = function(type, lang) {
