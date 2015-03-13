@@ -238,6 +238,17 @@ window.Hyddan = (function (Hyddan) {
             return Player;
         };
         Player.initialize = function (context) {
+			var _getObject = dijon.System.prototype.getObject;
+			dijon.System.prototype.getObject = function(name) {
+				var obj = _getObject.call(this, name);
+				if (typeof obj === "object" && !obj.getName) {
+					obj.getName = function () {return name;};
+					obj.setMediaType = function (mediaType) {obj.mediaType = mediaType;};
+					obj.getMediaType = function () {return obj.mediaType;};
+				}
+				return obj;
+			};
+			
             (_di = new dijon.System())
                 .mapValue('system', _di)
                 .mapOutlet('system')
