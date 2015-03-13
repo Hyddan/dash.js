@@ -292,7 +292,7 @@ Dash.dependencies.DashManifestExtensions.prototype = {
         if (manifest.hasOwnProperty("mediaPresentationDuration")) {
             mpdDuration = manifest.mediaPresentationDuration;
         } else {
-            mpdDuration = Number.POSITIVE_INFINITY;
+            mpdDuration = Number.MAX_VALUE;
         }
 
         return mpdDuration;
