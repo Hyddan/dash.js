@@ -167,6 +167,7 @@ window.Hyddan = (function (Hyddan) {
                 DashJs.videoModel = _di.getObject('videoModel');
             };
             
+            Player.debug = undefined;
             Player.notifier = undefined;
             
             return DashJs;
