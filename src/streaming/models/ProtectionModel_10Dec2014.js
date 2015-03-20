@@ -188,7 +188,7 @@ MediaPlayer.models.ProtectionModel_10Dec2014 = function () {
                                     new MediaPlayer.vo.protection.KeyError(sessionToken, 'Failed to create keySession'));
                         });
                     }
-                });
+                }).catch(function (e) { });
             }
         },
 
@@ -278,7 +278,7 @@ MediaPlayer.models.ProtectionModel_10Dec2014.detect = function(videoElement) {
     if ('object' === typeof (navigator)) {
         for (var i = 0; i < apis.length; i++) {
             var api = apis[i];
-            if ('function' !== typeof (navigator[api.requestMediaKeySystemAccess])) {
+            if ('function' !== typeof (navigator[api.requestMediaKeySystemAccess]) || 1 !== navigator[api.requestMediaKeySystemAccess].length) {
                 continue;
             }
             

@@ -338,7 +338,7 @@ MediaPlayer.models.ProtectionModel_21Jan2015.detect = function(videoElement) {
         return false;
     }
     if (navigator.requestMediaKeySystemAccess === undefined ||
-            typeof navigator.requestMediaKeySystemAccess !== 'function') {
+            typeof navigator.requestMediaKeySystemAccess !== 'function' || 2 !== navigator.requestMediaKeySystemAccess.length) {
         return false;
     }
 
