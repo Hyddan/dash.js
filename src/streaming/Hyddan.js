@@ -137,13 +137,9 @@ window.Hyddan = (function (Hyddan) {
         
         var _reset = function () {
             if (!String.isNullOrEmpty(_source)) {
-                Player.DashJs.streamController.unsubscribe(MediaPlayer.dependencies.StreamController.eventList.ENAME_STREAMS_COMPOSED, Player.DashJs.manifestUpdater);
-                Player.DashJs.manifestLoader.unsubscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.streamController);
-                Player.DashJs.manifestLoader.unsubscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.manifestUpdater);
                 Player.DashJs.streamController.reset();
                 Player.DashJs.abrController.reset();
                 Player.DashJs.rulesController.reset();
-                Player.DashJs.streamController = null;
                 _source = _protection = null;
                 _isPlaying = _trackProgress = false;
             }
@@ -160,8 +156,6 @@ window.Hyddan = (function (Hyddan) {
                 DashJs.abrController = _di.getObject('abrController');
                 DashJs.debug = _di.getObject('debug');
                 DashJs.eventBus = _di.getObject('eventBus');
-                DashJs.manifestLoader = _di.getObject('manifestLoader');
-                DashJs.manifestUpdater = _di.getObject('manifestUpdater');
                 DashJs.rulesController = _di.getObject('rulesController');
                 DashJs.streamController = _di.getObject('streamController');
                 DashJs.videoModel = _di.getObject('videoModel');
@@ -349,9 +343,6 @@ window.Hyddan = (function (Hyddan) {
                     
                     Player.DashJs.debug.setLogToBrowserConsole(_logToConsole);
                     
-                    Player.DashJs.streamController.subscribe(MediaPlayer.dependencies.StreamController.eventList.ENAME_STREAMS_COMPOSED, Player.DashJs.manifestUpdater);
-                    Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.streamController);
-                    Player.DashJs.manifestLoader.subscribe(MediaPlayer.dependencies.ManifestLoader.eventList.ENAME_MANIFEST_LOADED, Player.DashJs.manifestUpdater);
                     Player.DashJs.streamController.initialize();
                     Player.DashJs.streamController.setVideoModel(Player.DashJs.videoModel);
                     Player.DashJs.streamController.setAutoPlay(_autoPlay);

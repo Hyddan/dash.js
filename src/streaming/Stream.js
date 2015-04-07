@@ -268,7 +268,7 @@ MediaPlayer.dependencies.Stream = function () {
             processor.initialize(type, buffer, self.videoModel, self.fragmentController, self.playbackController, mediaSource, self, eventController);
             processor.setMediaInfo(mediaInfo);
             self.abrController.updateTopQualityIndex(mediaInfo);
-            self.adapter.updateData(processor);
+            self.adapter.updateData(manifest, processor);
             processor.stop();
             processor.start();
 			self.videoModel.setCurrentTime(currentTime);
@@ -564,7 +564,7 @@ MediaPlayer.dependencies.Stream = function () {
                 mediaInfo = self.adapter.getMediaInfoForType(manifest, streamInfo, processor.getType());
                 processor.setMediaInfo(mediaInfo);
                 this.abrController.updateTopQualityIndex(mediaInfo);
-                this.adapter.updateData(processor);
+                this.adapter.updateData(manifest, processor);
             }
         };
 
