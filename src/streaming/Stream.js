@@ -268,7 +268,7 @@ MediaPlayer.dependencies.Stream = function () {
             processor.initialize(type, buffer, self.videoModel, self.fragmentController, self.playbackController, mediaSource, self, eventController);
             processor.setMediaInfo(mediaInfo);
             self.abrController.updateTopQualityIndex(mediaInfo);
-            self.adapter.updateData(processor);
+            self.adapter.updateData(manifest, processor);
             processor.stop();
             processor.start();
 			self.videoModel.setCurrentTime(currentTime);

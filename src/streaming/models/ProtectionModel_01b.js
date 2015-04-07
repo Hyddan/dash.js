@@ -375,7 +375,9 @@ MediaPlayer.models.ProtectionModel_01b = function () {
 
         closeKeySession: function(sessionToken) {
             // Send our request to the CDM
-            videoElement[api.cancelKeyRequest](this.keySystem.systemString, sessionToken.sessionID);
+            try {
+                videoElement[api.cancelKeyRequest](this.keySystem.systemString, sessionToken.sessionID);
+            } catch (e) { }
         },
 
         setServerCertificate: function(/*serverCertificate*/) { /* Not supported */ },
