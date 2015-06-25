@@ -227,7 +227,7 @@ MediaPlayer.models.ProtectionModel_21Jan2015 = function () {
             });
         },
 
-        createKeySession: function(initData, sessionType) {
+        createKeySession: function(initData, sessionType /*, cdmData */) {
 
             if (!this.keySystem || !mediaKeys) {
                 throw new Error("Can not create sessions until you have selected a key system");
@@ -339,7 +339,7 @@ MediaPlayer.models.ProtectionModel_21Jan2015.detect = function(videoElement) {
         return false;
     }
     if (navigator.requestMediaKeySystemAccess === undefined ||
-            typeof navigator.requestMediaKeySystemAccess !== 'function') {
+            typeof navigator.requestMediaKeySystemAccess !== 'function' || 2 !== navigator.requestMediaKeySystemAccess.length) {
         return false;
     }
 

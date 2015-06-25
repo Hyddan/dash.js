@@ -37,10 +37,14 @@ MediaPlayer.di.Context = function () {
         // Detect EME APIs.  Look for newest API versions first
         if (MediaPlayer.models.ProtectionModel_21Jan2015.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_21Jan2015);
-        } else if (MediaPlayer.models.ProtectionModel_3Feb2014.detect(videoElement)) {
-            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_3Feb2014);
         } else if (MediaPlayer.models.ProtectionModel_01b.detect(videoElement)) {
             this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_01b);
+        } else if (MediaPlayer.models.ProtectionModel_10Dec2014.detect(videoElement)) {
+            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_10Dec2014);
+        } else if (MediaPlayer.models.ProtectionModel_28Aug2014.detect(videoElement)) {
+            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_28Aug2014);
+        } else if (MediaPlayer.models.ProtectionModel_3Feb2014.detect(videoElement)) {
+            this.system.mapClass('protectionModel', MediaPlayer.models.ProtectionModel_3Feb2014);
         } else {
             var debug = this.system.getObject("debug");
             debug.log("No supported version of EME detected on this user agent!");

@@ -58,6 +58,15 @@ MediaPlayer.dependencies.protection.KeySystem = {
      */
 
     /**
+     * Parse DRM-specific CDM data
+     *
+     * @param {String} cdmData the CDM data
+     * @returns {Uint8Array} parsed CDM data
+     *
+     cdmData: function(cdmData) { return null; },
+     */
+
+    /**
      * Parse DRM-specific init data from the ContentProtection
      * element.
      *

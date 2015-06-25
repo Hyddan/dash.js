@@ -303,7 +303,7 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
 
         // All remaining key system scenarios require a request to a remote license server
         var xhr = new XMLHttpRequest(),
-            url = (protData && protData.laURL && protData.laURL !== "") ? protData.laURL : laURL,
+            url = (protData && protData.laUrl && protData.laUrl !== "") ? protData.laUrl : laURL,
             self = this;
 
         // Possibly update the URL based on the message
@@ -351,10 +351,12 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
                 }
             }
         };
-        if (protData) {
-            updateHeaders(protData.httpRequestHeaders);
-        }
+        
         updateHeaders(keySystem.getRequestHeadersFromMessage(message));
+        
+        if (protData) {
+            updateHeaders(protData.headers);
+        }
 
         // Set withCredentials property from protData
         if (protData && protData.withCredentials) {
@@ -364,4 +366,3 @@ MediaPlayer.dependencies.ProtectionExtensions.prototype = {
         xhr.send(keySystem.getLicenseRequestFromMessage(message));
     }
 };
-

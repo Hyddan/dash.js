@@ -39,10 +39,10 @@ MediaPlayer.dependencies.ProtectionController = function () {
         protDataSet,
 
         getProtData = function(keySystem) {
-            var protData = null,
+            var protData = {},
                 keySystemString = keySystem.systemString;
             if (protDataSet) {
-                protData = (keySystemString in protDataSet) ? protDataSet[keySystemString] : null;
+                protData = (keySystemString in protDataSet) ? protDataSet[keySystemString] : {};
             }
             return protData;
         },
@@ -53,7 +53,7 @@ MediaPlayer.dependencies.ProtectionController = function () {
             } else {
                 var keyMessageEvent = e.data;
                 pendingLicenseRequests.push(keyMessageEvent.sessionToken);
-                this.protectionExt.requestLicense(this.keySystem, getProtData(this.keySystem),
+                this.protectionExt.requestLicense(this.keySystem, getProtData(this.keySystem).licenseRequest,
                     keyMessageEvent.message, keyMessageEvent.defaultURL,
                     keyMessageEvent.sessionToken);
             }
@@ -317,7 +317,7 @@ MediaPlayer.dependencies.ProtectionController = function () {
             var initDataForKS = MediaPlayer.dependencies.protection.CommonEncryption.getPSSHForKeySystem(this.keySystem, initData);
             if (initDataForKS) {
                 try {
-                    this.protectionModel.createKeySession(initDataForKS, this.sessionType);
+                    this.protectionModel.createKeySession(initDataForKS, this.sessionType, this.keySystem.cdmData((getProtData(this.keySystem).licenseRequest || {}).cdmData));
                 } catch (error) {
                     this.notify(MediaPlayer.dependencies.ProtectionController.eventList.ENAME_PROTECTION_ERROR, "Error creating key session! " + error.message);
                 }
