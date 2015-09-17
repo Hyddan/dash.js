@@ -196,6 +196,24 @@ MediaPlayer.dependencies.protection.KeySystem_PlayReady = function() {
         systemString: keySystemStr,
         uuid: keySystemUUID,
 
+        cdmData: function (cdmData) {
+            if (String.isNullOrEmpty(cdmData)) {
+                return null;
+            }
+
+            var cdmDataArray = [], charCode;
+            cdmDataArray.push(239);
+            cdmDataArray.push(187);
+            cdmDataArray.push(191);
+            for (var i = 0, j = cdmData.length; i < j; ++i) {
+                charCode = cdmData.charCodeAt(i);
+                cdmDataArray.push((charCode & 0xFF00) >> 8);
+                cdmDataArray.push(charCode & 0xFF);
+            }
+
+            return new Uint8Array(cdmDataArray);
+        },
+
         getInitData: parseInitDataFromContentProtection,
 
         getRequestHeadersFromMessage: getRequestHeaders,
