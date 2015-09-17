@@ -53,12 +53,12 @@ MediaPlayer.dependencies.ProtectionController = function () {
         initialized = false,
 
         getProtData = function(keySystem) {
-            var protData = null,
+            var protData = {},
                 keySystemString = keySystem.systemString;
             if (protDataSet) {
-                protData = (keySystemString in protDataSet) ? protDataSet[keySystemString] : null;
+                protData = (keySystemString in protDataSet) ? protDataSet[keySystemString] : {};
             }
-            return protData;
+            return protData.licenseRequest;
         },
 
         selectKeySystem = function(supportedKS, fromManifest) {
@@ -104,7 +104,7 @@ MediaPlayer.dependencies.ProtectionController = function () {
                                     type: MediaPlayer.dependencies.ProtectionController.events.KEY_SYSTEM_SELECTED,
                                     data: event.data
                                 });
-                                self.createKeySession(supportedKS[ksIdx].initData);
+                                self.createKeySession(supportedKS[ksIdx].initData, this.sessionType);
                             }
                         };
                         this.protectionModel.subscribe(MediaPlayer.models.ProtectionModel.eventList.ENAME_KEY_SYSTEM_ACCESS_COMPLETE, ksAccess, undefined, true);
@@ -238,13 +238,13 @@ MediaPlayer.dependencies.ProtectionController = function () {
                     } else if (typeof serverURL === "object" && serverURL.hasOwnProperty(messageType)) {
                         url = serverURL[messageType];
                     }
-                } else if (protData.laURL && protData.laURL !== "") { // TODO: Deprecated!
-                    url = protData.laURL;
+                } else if (protData.laUrl && protData.laUrl !== "") { // TODO: Deprecated!
+                    url = protData.laUrl;
                 }
             } else {
                 url = this.keySystem.getLicenseServerURLFromInitData(MediaPlayer.dependencies.protection.CommonEncryption.getPSSHData(sessionToken.initData));
                 if (!url) {
-                    url = e.data.laURL;
+                    url = e.data.laUrl;
                 }
             }
             // Possibly update or override the URL based on the message
@@ -291,10 +291,12 @@ MediaPlayer.dependencies.ProtectionController = function () {
                     }
                 }
             };
-            if (protData) {
-                updateHeaders(protData.httpRequestHeaders);
-            }
+
             updateHeaders(this.keySystem.getRequestHeadersFromMessage(message));
+
+            if (protData) {
+                updateHeaders(protData.headers);
+            }
 
             // Set withCredentials property from protData
             if (protData && protData.withCredentials) {
@@ -590,7 +592,7 @@ MediaPlayer.dependencies.ProtectionController = function () {
                     }
                 }
                 try {
-                    this.protectionModel.createKeySession(initDataForKS, this.sessionType);
+                    this.protectionModel.createKeySession(initDataForKS, this.sessionType, this.keySystem.cdmData(getProtData(this.keySystem).cdmData));
                 } catch (error) {
                     this.eventBus.dispatchEvent({
                         type: MediaPlayer.dependencies.ProtectionController.events.KEY_SESSION_CREATED,

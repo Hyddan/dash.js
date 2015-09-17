@@ -282,7 +282,7 @@ MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
             }
         },
 
-        createKeySession: function(initData /*, keySystemType */) {
+        createKeySession: function(initData, keySystemType, cdmData) {
 
             if (!this.keySystem || !mediaKeys || !keySystemAccess) {
                 throw new Error("Can not create sessions until you have selected a key system");
@@ -291,7 +291,7 @@ MediaPlayer.models.ProtectionModel_3Feb2014 = function () {
             // Use the first video capability for the contentType.
             // TODO:  Not sure if there is a way to concatenate all capability data into a RFC6386-compatible format
             var contentType = keySystemAccess.ksConfiguration.videoCapabilities[0].contentType;
-            var session = mediaKeys.createSession(contentType, new Uint8Array(initData));
+            var session = !String.isNullOrEmpty(cdmData) ? mediaKeys.createSession(contentType, new Uint8Array(initData), cdmData) : mediaKeys.createSession(contentType, new Uint8Array(initData));
             var sessionToken = createSessionToken.call(this, session, initData);
 
             // Add all event listeners

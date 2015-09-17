@@ -47,6 +47,8 @@ MediaPlayer.dependencies.protection.KeySystem_Widevine = function() {
         systemString: keySystemStr,
         uuid: keySystemUUID,
 
+        cdmData: function (cdmData) { return String.isNullOrEmpty(cdmData) ? null : cdmData; },
+
         getInitData: MediaPlayer.dependencies.protection.CommonEncryption.parseInitDataFromContentProtection,
 
         getRequestHeadersFromMessage: function(/*message*/) { return null; },
